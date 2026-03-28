@@ -1,6 +1,12 @@
 from typing import List, Dict
 from src.core.constants import REWARD_LEVELS
 
+def calculate_pet_task_score(pet: Dict, task: Dict):
+    """计算宠物对任务的得分"""
+    total = 0
+    
+
+
 def precompute_pet_task_scores(pets: List[Dict], tasks: List[Dict]) -> Dict[str, Dict[str, int]]:
     """预计算每个宠物对每个任务的得分"""
     pet_task_scores = {}
