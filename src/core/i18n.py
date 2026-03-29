@@ -10,7 +10,7 @@ TRANSLATIONS = {
         'SERVER_SETTINGS': "🌐 Server Settings",
         'SELECT_SERVER': "1. Select Server",
         'SELECT_JOB_FILE': "2. Select Job File",
-        'MAX_JOBS': "3. Max Concurrent Jobs (P)",
+        'MAX_JOBS': "3. Max Dispatch Jobs",
         'SAVE_CONFIG': "📥 Download Current Config",
         'MY_PETS': "📋 My Owned Pets",
         'SEARCH_PETS': "Search pets...",
@@ -45,7 +45,7 @@ TRANSLATIONS = {
             'cn': "China Server (CN)",
             'gl-cn': "Global Server (GL-CN)",
             'gl-en': "Global Server (GL-EN)",
-            'kr': "Korea Server (KR)"
+            'kr': "Korea Server (KR) (Not supported yet)"
         }
     },
     'cn': {
@@ -57,7 +57,7 @@ TRANSLATIONS = {
         'SERVER_SETTINGS': "🌐 服务器设置",
         'SELECT_SERVER': "1. 选择服务器",
         'SELECT_JOB_FILE': "2. 选择任务文件",
-        'MAX_JOBS': "3. 最大并行任务数量 (P)",
+        'MAX_JOBS': "3. 最大派遣任务数量",
         'SAVE_CONFIG': "📥 下载当前配置",
         'MY_PETS': "📋 我拥有的宠物",
         'SEARCH_PETS': "搜索宠物...",
@@ -92,7 +92,7 @@ TRANSLATIONS = {
             'cn': "中国服 (CN)",
             'gl-cn': "国际服 (GL-CN)",
             'gl-en': "国际服 (GL-EN)",
-            'kr': "韩服 (KR)"
+            'kr': "韩服 (KR) (暂不支持)"
         }
     }
 }

@@ -47,11 +47,12 @@ def get_current_config():
 with st.sidebar:
     st.header(t('LANGUAGE', st.session_state.lang))
     lang_options = {"cn": "简体中文", "en": "English"}
-    st.session_state.lang = st.radio(
+    # Fix: Use key for stable state management
+    st.radio(
         "Select Language", 
         options=list(lang_options.keys()), 
         format_func=lambda x: lang_options[x],
-        index=0 if st.session_state.lang == 'cn' else 1,
+        key='lang',
         horizontal=True
     )
     st.divider()
@@ -61,40 +62,38 @@ with st.sidebar:
     server_names = t('SERVER_NAMES', st.session_state.lang)
     server_list = list(server_names.keys())
     
-    if st.session_state.server not in server_list: 
-        st.session_state.server = 'cn'
-    
-    server_idx = server_list.index(st.session_state.server)
-    server_key = st.radio(
+    # Fix: Use key for stable state management
+    st.radio(
         t('SELECT_SERVER', st.session_state.lang), 
         options=server_list, 
         format_func=lambda x: server_names[x],
-        index=server_idx
+        key='server'
     )
-    st.session_state.server = server_key
     
     # 2. Job File Selection
-    job_files = get_available_job_files(server=server_key)
+    job_files = get_available_job_files(server=st.session_state.server)
     if job_files:
+        # Fix: Add key dynamic to server to force reset when server changes
         job_file_path = st.selectbox(
             t('SELECT_JOB_FILE', st.session_state.lang), 
             options=job_files, 
             format_func=lambda x: os.path.basename(x),
-            index=len(job_files) - 1 # Default to latest (sorted alphabetically)
+            index=len(job_files) - 1,
+            key=f"job_select_{st.session_state.server}"
         )
     else:
-        st.error(t('TASK_FILE_NOT_FOUND', st.session_state.lang).format(server_key))
+        st.error(t('TASK_FILE_NOT_FOUND', st.session_state.lang).format(st.session_state.server))
         st.stop()
         
     # 3. Max Jobs (P)
-    p_limit = st.number_input(
+    # Fix: Use key for stable state management
+    st.number_input(
         t('MAX_JOBS', st.session_state.lang), 
         min_value=2, 
         max_value=5, 
-        value=st.session_state.p_limit,
-        step=1
+        step=1,
+        key='p_limit'
     )
-    st.session_state.p_limit = p_limit
     
     st.divider()
     
@@ -115,7 +114,7 @@ with st.sidebar:
             st.session_state.p_limit = config.get('max_job_number', 5)
             st.session_state.lang = config.get('ui_language', st.session_state.lang)
             
-            # Pre-populate widget keys so they are ready when rendered
+            # Pre-populate widget keys
             for pet_name in config.get('owned_pets', []):
                 st.session_state[f"chk_{pet_name}"] = True
             for pet_name, count in config.get('aux_pets_counts', {}).items():
@@ -128,12 +127,11 @@ with st.sidebar:
     st.divider()
     
     # 5. Save Config (Download)
-    # Note: This is now reactive to the current session state keys
     current_cfg = get_current_config()
     st.download_button(
         label=t('SAVE_CONFIG', st.session_state.lang),
         data=json.dumps(current_cfg, indent=4, ensure_ascii=False),
-        file_name=f"dispatch_config_{server_key}.json",
+        file_name=f"dispatch_config_{st.session_state.server}.json",
         mime="application/json"
     )
     
@@ -159,8 +157,7 @@ tasks = load_tasks(job_file_path)
 
 # --- TASK PREVIEW ---
 with st.expander(t('TASK_PREVIEW', st.session_state.lang), expanded=True):
-    # Filter out empty tasks for preview
-    preview_tasks = [t for t in tasks if t['task']]
+    preview_tasks = [t_obj for t_obj in tasks if t_obj['task']]
     if preview_tasks:
         preview_df = pd.DataFrame([
             {
@@ -190,7 +187,6 @@ with col_owned:
     
     with st.expander(t('EXPAND_PET_LIST', st.session_state.lang), expanded=True):
         new_owned_selection = []
-        # Filter pets based on search or current selection in session state
         filtered_owned = [
             p for p in all_pets 
             if owned_search.lower() in p['name'].lower() or st.session_state.get(f"chk_{p['name']}", False)
@@ -208,7 +204,6 @@ with col_aux:
     aux_search = st.text_input(t('SEARCH_PETS', st.session_state.lang) + " ", key="aux_search")
     
     with st.expander(t('SET_BORROW_COPIES', st.session_state.lang), expanded=True):
-        # Filter pets based on search or non-zero count in session state
         filtered_aux = [
             p for p in all_pets 
             if aux_search.lower() in p['name'].lower() or st.session_state.get(f"num_{p['name']}", 0) > 0
@@ -231,7 +226,6 @@ st.divider()
 run_calc = st.button(t('RUN_OPTIMIZER', st.session_state.lang), use_container_width=True, type="primary")
 
 if run_calc:
-    # Final check of selections
     owned_pet_names = [k.replace("chk_", "") for k, v in st.session_state.items() if k.startswith("chk_") and v]
     aux_pets_counts = {k.replace("num_", ""): v for k, v in st.session_state.items() if k.startswith("num_") and v > 0}
     
