@@ -16,6 +16,15 @@ from src.core.scoring import precompute_pet_task_scores, get_reward_level
 from src.core.assignment import calculate_best_assignment
 from src.core.i18n import t
 
+# --- CACHED DATA LOADING ---
+@st.cache_data
+def get_cached_pets(server):
+    return load_pets(server=server)
+
+@st.cache_data
+def get_cached_tasks(file_path):
+    return load_tasks(file_path)
+
 # --- PAGE CONFIG ---
 st.set_page_config(
     page_title="🐾 ddl-PetDispatch",
@@ -29,10 +38,12 @@ if 'server' not in st.session_state:
     st.session_state.server = 'cn'
 if 'p_limit' not in st.session_state:
     st.session_state.p_limit = 5
+if 'last_processed_upload' not in st.session_state:
+    st.session_state.last_processed_upload = None
 
 # --- HELPER: GET CURRENT CONFIG ---
 def get_current_config():
-    """Extracts the current state directly from widget keys to ensure it's up-to-date."""
+    """Extracts the current state directly from widget keys."""
     owned = [k.replace("chk_", "") for k, v in st.session_state.items() if k.startswith("chk_") and v]
     aux = {k.replace("num_", ""): v for k, v in st.session_state.items() if k.startswith("num_") and v > 0}
     return {
@@ -43,18 +54,21 @@ def get_current_config():
         "ui_language": st.session_state.lang
     }
 
-# --- SIDEBAR: CONFIG & LANGUAGE ---
+# --- SIDEBAR START ---
 with st.sidebar:
     st.header(t('LANGUAGE', st.session_state.lang))
-    lang_options = {"cn": "简体中文", "en": "English"}
-    # Fix: Use key for stable state management
-    st.radio(
-        "Select Language", 
-        options=list(lang_options.keys()), 
-        format_func=lambda x: lang_options[x],
-        key='lang',
-        horizontal=True
+    lang_list = ["cn", "en"]
+    lang_idx = lang_list.index(st.session_state.lang)
+    new_lang = st.radio(
+        "UI Language Selector",
+        options=lang_list,
+        format_func=lambda x: "简体中文" if x == "cn" else "English",
+        index=lang_idx,
+        horizontal=True,
+        label_visibility="collapsed"
     )
+    st.session_state.lang = new_lang
+    
     st.divider()
     
     # 1. Server Selection
@@ -62,71 +76,82 @@ with st.sidebar:
     server_names = t('SERVER_NAMES', st.session_state.lang)
     server_list = list(server_names.keys())
     
-    # Fix: Use key for stable state management
-    st.radio(
-        t('SELECT_SERVER', st.session_state.lang), 
-        options=server_list, 
+    # Ensure current server is valid
+    if st.session_state.server not in server_list:
+        st.session_state.server = 'cn'
+        
+    server_idx = server_list.index(st.session_state.server)
+    st.markdown(f"**{t('SELECT_SERVER', st.session_state.lang)}**")
+    new_server = st.radio(
+        "Server Selector",
+        options=server_list,
         format_func=lambda x: server_names[x],
-        key='server'
+        index=server_idx,
+        label_visibility="collapsed"
     )
+    st.session_state.server = new_server
     
     # 2. Job File Selection
     job_files = get_available_job_files(server=st.session_state.server)
     if job_files:
-        # Fix: Add key dynamic to server to force reset when server changes
+        st.markdown(f"**{t('SELECT_JOB_FILE', st.session_state.lang)}**")
+        # Use server-specific key to force reset when server changes, but keep index stable
         job_file_path = st.selectbox(
-            t('SELECT_JOB_FILE', st.session_state.lang), 
-            options=job_files, 
+            "Job File Selector",
+            options=job_files,
             format_func=lambda x: os.path.basename(x),
             index=len(job_files) - 1,
-            key=f"job_select_{st.session_state.server}"
+            key=f"job_select_{st.session_state.server}",
+            label_visibility="collapsed"
         )
     else:
         st.error(t('TASK_FILE_NOT_FOUND', st.session_state.lang).format(st.session_state.server))
         st.stop()
         
     # 3. Max Jobs (P)
-    # Fix: Use key for stable state management
-    st.number_input(
-        t('MAX_JOBS', st.session_state.lang), 
-        min_value=2, 
-        max_value=5, 
+    st.markdown(f"**{t('MAX_JOBS', st.session_state.lang)}**")
+    new_p = st.number_input(
+        "Max Jobs Input",
+        min_value=2,
+        max_value=5,
+        value=int(st.session_state.p_limit),
         step=1,
-        key='p_limit'
+        label_visibility="collapsed"
     )
+    st.session_state.p_limit = new_p
     
     st.divider()
     
+    # 4. Configuration Management
     st.header(t('CONFIG_MGMT', st.session_state.lang))
-    
-    # Brief explanation
     if st.session_state.lang == 'cn':
         st.info("💡 可跳过：上传之前保存的 .json 配置文件（按键在底部），可快速恢复您的宠物，界面，和服务器设置。")
     else:
         st.info("💡 Optional: Upload a previously saved (button below) .json config to instantly restore your pets, UI, and server settings.")
-
-    # 4. Read Config
+    # Load Config
     uploaded_file = st.file_uploader(t('LOAD_CONFIG', st.session_state.lang), type=["json"])
-    if uploaded_file is not None:
+    # Logic to handle upload once
+    if uploaded_file is not None and uploaded_file != st.session_state.last_processed_upload:
         try:
             config = json.load(uploaded_file)
-            st.session_state.server = config.get('server', 'cn')
-            st.session_state.p_limit = config.get('max_job_number', 5)
+            st.session_state.server = config.get('server', st.session_state.server)
+            st.session_state.p_limit = config.get('max_job_number', st.session_state.p_limit)
             st.session_state.lang = config.get('ui_language', st.session_state.lang)
             
-            # Pre-populate widget keys
             for pet_name in config.get('owned_pets', []):
                 st.session_state[f"chk_{pet_name}"] = True
             for pet_name, count in config.get('aux_pets_counts', {}).items():
                 st.session_state[f"num_{pet_name}"] = count
                 
+            st.session_state.last_processed_upload = uploaded_file
             st.success(t('LOAD_SUCCESS', st.session_state.lang))
+            st.rerun()
         except Exception as e:
             st.error(t('LOAD_FAIL', st.session_state.lang).format(e))
+    elif uploaded_file is None:
+        st.session_state.last_processed_upload = None
 
-    st.divider()
-    
-    # 5. Save Config (Download)
+    # Save Config
     current_cfg = get_current_config()
     st.download_button(
         label=t('SAVE_CONFIG', st.session_state.lang),
@@ -137,7 +162,6 @@ with st.sidebar:
     
     st.divider()
     
-    # GitHub Link
     github_url = "https://github.com/chuyaowang/ddl-PetDispatch/tree/modularize-and-refactor"
     st.markdown(f"""
         <div style="margin-top: -10px; margin-bottom: 20px;">
@@ -151,11 +175,10 @@ with st.sidebar:
 # --- MAIN AREA ---
 st.title(t('APP_TITLE', st.session_state.lang))
 
-# --- DATA LOADING ---
-all_pets = load_pets(server=st.session_state.server)
-tasks = load_tasks(job_file_path)
+all_pets = get_cached_pets(st.session_state.server)
+tasks = get_cached_tasks(job_file_path)
 
-# --- TASK PREVIEW ---
+# Task Preview
 with st.expander(t('TASK_PREVIEW', st.session_state.lang), expanded=True):
     preview_tasks = [t_obj for t_obj in tasks if t_obj['task']]
     if preview_tasks:
@@ -167,10 +190,8 @@ with st.expander(t('TASK_PREVIEW', st.session_state.lang), expanded=True):
             for task in preview_tasks
         ])
         st.table(preview_df)
-    else:
-        st.write("No active tasks found in this file.")
 
-# --- RANK COLORS ---
+# Rank Colors
 RANK_COLORS = {
     "特阶": "#FFD700", "一阶": "#FFEC8B", "二阶": "#C0C0C0", 
     "三阶": "#CD7F32", "四阶": "#A0522D", "无奖励": "#F0F2F6",
@@ -178,7 +199,6 @@ RANK_COLORS = {
     "C": "#CD7F32", "D": "#A0522D", "N/A": "#F0F2F6"
 }
 
-# --- MAIN AREA: PET SELECTION ---
 col_owned, col_aux = st.columns(2)
 
 with col_owned:
@@ -186,7 +206,6 @@ with col_owned:
     owned_search = st.text_input(t('SEARCH_PETS', st.session_state.lang), key="owned_search")
     
     with st.expander(t('EXPAND_PET_LIST', st.session_state.lang), expanded=True):
-        new_owned_selection = []
         filtered_owned = [
             p for p in all_pets 
             if owned_search.lower() in p['name'].lower() or st.session_state.get(f"chk_{p['name']}", False)
@@ -196,8 +215,7 @@ with col_owned:
         for i, pet in enumerate(filtered_owned):
             name = pet['name']
             with o_cols[i % 2]:
-                if st.checkbox(f"{name}", key=f"chk_{name}"):
-                    new_owned_selection.append(name)
+                st.checkbox(f"{name}", key=f"chk_{name}")
 
 with col_aux:
     st.subheader(t('BORROW_PETS', st.session_state.lang))
@@ -213,15 +231,8 @@ with col_aux:
         for i, pet in enumerate(filtered_aux):
             name = pet['name']
             with cols[i % 3]:
-                st.number_input(
-                    f"{name}", 
-                    min_value=0, 
-                    max_value=20, 
-                    step=1, 
-                    key=f"num_{name}"
-                )
+                st.number_input(f"{name}", min_value=0, max_value=20, step=1, key=f"num_{name}")
 
-# --- CALCULATION & RESULTS ---
 st.divider()
 run_calc = st.button(t('RUN_OPTIMIZER', st.session_state.lang), use_container_width=True, type="primary")
 
