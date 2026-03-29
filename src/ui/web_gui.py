@@ -135,6 +135,8 @@ with st.sidebar:
         mime="application/json"
     )
     
+    st.divider()
+    
     # GitHub Link
     github_url = "https://github.com/chuyaowang/ddl-PetDispatch/tree/modularize-and-refactor"
     st.markdown(f"""
