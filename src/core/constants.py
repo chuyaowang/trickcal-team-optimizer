@@ -14,6 +14,14 @@ RARITY_BASE_MAP = {
     '传说宠物': 5
 }
 
+RARITY_BASE_MAP_EN = {
+    'Normal': 2,
+    'Rare': 2,
+    'Unique': 3,
+    'Legendary': 5
+}
+
+
 # 奖励等级阈值映射 (Server -> List of (threshold, level))
 SERVER_REWARD_LEVELS = {
     'cn': [

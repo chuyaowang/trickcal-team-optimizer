@@ -87,14 +87,14 @@ class DispatchCalculatorGUI:
         self.task_count_combobox.pack(side=tk.LEFT, padx=5)
         
         # 计算按钮
-        self.calc_button = ttk.Button(self.root, text="🚀 开始计算最优派遣方案", command=self.calculate)
+        self.calc_button = ttk.Button(self.root, text="开始计算最优派遣方案", command=self.calculate)
         self.calc_button.pack(padx=10, pady=10)
         
         # 结果显示
         result_frame = ttk.LabelFrame(self.root, text="计算结果")
         result_frame.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
         
-        self.result_text = scrolledtext.ScrolledText(result_frame, wrap=tk.WORD, font=("Consolas", 10))
+        self.result_text = scrolledtext.ScrolledText(result_frame, wrap=tk.WORD, font=("Arial", 10))
         self.result_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         self.result_text.config(state=tk.DISABLED)
 
@@ -210,7 +210,7 @@ class DispatchCalculatorGUI:
             self.result_text.insert(tk.END, f"\n未找到最优解。状态: {result.get('status')}\n")
             return
 
-        self.result_text.insert(tk.END, f"\n✅ 计算完成！总耗时：{calc_time:.2f} 秒\n")
+        self.result_text.insert(tk.END, f"\n计算完成！总耗时：{calc_time:.2f} 秒\n")
         self.result_text.insert(tk.END, f"总计奖励分：{result['total']}\n")
         self.result_text.insert(tk.END, f"借用宠物总数：{result['borrowed']} | 使用宠物总数：{result['total_pets']}\n")
         self.result_text.insert(tk.END, "-"*50 + "\n")

@@ -36,9 +36,11 @@ conda create -n petdispatch python=3.9 -y && conda activate petdispatch && pip i
 # 1. 激活环境 (每次打开窗口只需执行一次)
 conda activate petdispatch
 
-# 2. 运行图形界面
-python -m src.ui.gui
+# 2. 运行网页界面
+streamlit run src/ui/web_gui.py
 ```
+
+*执行后会自动在您的默认浏览器中打开一个新的标签页，您可以在其中操作计算器。*
 
 ---
 

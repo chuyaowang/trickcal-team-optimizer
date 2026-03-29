@@ -1,142 +1,79 @@
-# 嘟嘟脸恶作剧 - 农场宠物派遣方案计算
+# 🐾 ddl-PetDispatch
 
-## 项目简介
+[English](#english) | [中文](#中文)
 
-这是一个用于计算宠物最优派遣方案的工具，适用于嘟嘟脸恶作剧中平日农场宠物派遣任务。程序会根据你拥有的宠物特性、地区任务要求，自动计算出得分最高的宠物派遣组合，支持多进程并行计算，快速找到最优方案。
+---
+## Please Note
 
-## 功能特点
+⚠️ The pets and dispatch missions data may need to be updated for the CN server and definitely needs to be updated for the KR server. Currently the KR server uses the same data as the global server for testing only. If you are willing to update, please refer to [Contribution / 贡献指南](docs/wiki/Contribution-Guide.md) first!
 
-- 📊 读取 Excel 格式的宠物数据和任务数据，支持自定义宠物和任务配置
+⚠️ 中国服的宠物和任务信息可能需要更新。韩服的信息一定需要更新。目前的韩服数据和国际服相同，仅做测试用。如果你可以更新数据，请先参考[Contribution / 贡献指南](docs/wiki/Contribution-Guide-CN.md)
 
-- ⚡ 多进程并行计算，利用 CPU 多核提升计算速度，支持 Windows 打包运行
 
-- 🎯 自动计算宠物组合的任务得分，推荐最优派遣方案
+## English
 
-- 🏆 支持识别任务奖励等级，找到「全特级」方案时会提前终止计算，节省时间
+**ddl-PetDispatch** is a globally optimal pet assignment calculator for farm dispatch tasks. It uses Mixed Integer Linear Programming (MILP) to find the best possible pet teams to maximize your reward tiers.
 
-- 🎮 交互式操作，通过终端选择派遣区域、拥有的宠物和任务数量
-
-## 环境依赖
-
-### 运行环境
-
-- Python 3.x（推荐 Python 3.8 及以上）
-
-### 依赖库
-
-需要安装以下 Python 库：
-
+### 🚀 Quick Start (One-Liner)
+If you have **Miniconda** or **Anaconda** installed, run this in your terminal inside the project folder:
 ```bash
-
-pip install pandas openpyxl tqdm
+conda create -n petdispatch python=3.9 -y && conda activate petdispatch && pip install -r requirements.txt
 ```
 
-> 注：`concurrent.futures` 和 `multiprocessing` 是 Python 标准库，无需额外安装。
-> 
-> 
+### 💻 How to Use
 
-## 使用方法
-
-### 1. 准备数据文件
-
-将以下两个 Excel 文件放入项目根目录的 `data` 文件夹中：
-
-- `宠物列表.xlsx`：包含你的宠物信息，需要包含宠物名称、稀有度、特性等字段
-
-- `跑腿地区.xlsx`：包含地区任务信息，需要包含地区、任务名称、加成特性等字段
-
-> 程序启动时会自动检查 `data` 文件夹中的文件，如果缺失会提示错误。
-> 
-> 
-
-### 2. 运行程序
-
-#### 方式 1：直接运行源码
-
-在项目根目录打开终端，执行：
-
+#### 1. Web Interface (Recommended)
+Run the modern web-based UI:
 ```bash
+streamlit run src/ui/web_gui.py
+```
+*   **Save/Load**: Use the sidebar to download your setup as a `.json` file and reload it later.
+*   **Results**: View optimized teams directly on the same page.
 
-python dispatch_calculator.py
+#### 2. Command Line (CLI)
+Run directly using a saved config file:
+```bash
+python main.py --config your_config.json
 ```
 
-#### 方式 2：运行打包后的 exe 文件（推荐）
+### 📖 Documentation
+- [User Guide](docs/wiki/User-Guide.md)
+- [Installation Guide](docs/wiki/Installation-Guide.md)
+- [Contribution Guide](docs/wiki/Contribution-Guide.md)
+- [Algorithm Explanation](docs/wiki/Algorithm-Explanation.md)
+- [Software Architecture](docs/wiki/Software-Architecture.md)
 
-1.前往项目的 Releases 页面下载最新版本的压缩包；
+---
 
-2.将下载的压缩包解压到任意目录（解压后会包含 dispatch_calculator.exe 及配套的 data 文件夹）；
+## 中文
 
-3.双击解压目录中的 dispatch_calculator.exe 即可运行（仅支持 Windows 平台）。
+**ddl-PetDispatch** 是一款针对农场派遣任务的全局最优宠物分配计算器。它利用混合整数线性规划 (MILP) 算法，自动寻找能够最大化奖励等级的宠物组合方案。
 
+### 🚀 快速安装 (一键指令)
+如果您已安装 **Miniconda** 或 **Anaconda**，请在项目文件夹内运行：
+```bash
+conda create -n petdispatch python=3.9 -y && conda activate petdispatch && pip install -r requirements.txt
+```
 
-### 3. 交互式操作
+### 💻 使用说明
 
-按照终端提示完成以下操作：
+#### 1. 网页界面 (推荐)
+启动现代化的网页版 UI：
+```bash
+streamlit run src/ui/web_gui.py
+```
+*   **保存与读取**: 在侧边栏可以将您当前的宠物配置下载为 `.json` 文件，下次使用时直接上传即可。
+*   **实时结果**: 方案计算结果将直接显示在输入区域下方。
 
-1. 选择派遣大区域（输入序号）
+#### 2. 命令行界面 (CLI)
+使用已保存的配置文件直接运行：
+```bash
+python main.py --config 你的配置文件.json
+```
 
-2. 选择你拥有的宠物（输入序号，用空格分隔多个宠物）
-
-3. 选择农场拥有的宠物（可借用的宠物，输入序号，用空格分隔）
-
-4. 选择可执行的任务数量
-
-5. 等待程序计算完成，查看最优派遣方案
-
-## 数据说明
-
-### 宠物列表.xlsx 格式要求
-
-需要包含以下信息（列名可参考程序内的映射）：
-
-- 宠物名称
-
-- 稀有度（普通宠物 / 高级宠物 / 稀有宠物 / 传说宠物）
-
-- 特性（如技能等级、加成属性等，程序会根据特性计算得分）
-
-### 跑腿地区.xlsx 格式要求
-
-需要包含以下信息：
-
-- 大区域名称（如「城市区域」「郊外区域」）
-
-- 子区域名称
-
-- 任务名称
-
-- 加成特性（如需要特定技能的宠物，会获得额外得分）
-
-## 运行效果
-
-程序运行后会显示：
-
-- 计算耗时
-
-- 最优方案的总得分
-
-- 借用宠物数量
-
-- 每个任务的推荐派遣宠物
-
-- 任务得分和预计奖励等级
-
-如果找到「全特级」的派遣方案，程序会提前终止计算，立即输出结果。
-
-## 开源协议
-
-本项目采用 [MIT License](LICENSE)，你可以自由使用、修改和分发本项目。
-
-## 注意事项
-
-1. 确保 `data` 文件夹中的 Excel 文件格式正确，否则程序可能无法读取数据
-
-2. 如果你在 Windows 平台打包程序，程序已经处理了多进程的兼容性问题，无需额外配置
-
-3. 计算速度取决于你的 CPU 核心数，核心越多，计算速度越快
-
-4. 如果任务数量较多，计算时间可能会稍长，请耐心等待
-
-5. 程序会自动处理重复宠物和无效任务，无需手动过滤
-
-5. 下载的压缩包已包含完整运行所需的文件，无需额外安装 Python 或依赖库，解压后即可直接运行
+### 📖 相关文档
+- [用户指南](docs/wiki/User-Guide-CN.md)
+- [安装指南](docs/wiki/Installation-Guide-CN.md)
+- [贡献指南](docs/wiki/Contribution-Guide-CN.md)
+- [算法说明 (英文)](docs/wiki/Algorithm-Explanation.md)
+- [软件架构 (英文)](docs/wiki/Software-Architecture.md)

@@ -10,27 +10,32 @@ ddl-PetDispatch/
 ├── docs/wiki/           # Documentation and Wiki files
 └── src/
     ├── core/            # Mathematical models and constants
-    │   ├── assignment.py # MILP Solver implementation
+    │   ├── assignment.py # MILP Solver implementation (PuLP)
     │   ├── scoring.py    # Pet-task score precomputation
     │   └── constants.py  # Server-specific reward levels and rules
     ├── data_loader/     # CSV ingestion logic
-    └── ui/              # User Interfaces (CLI and GUI)
+    └── ui/              # User Interfaces
+        ├── cli.py       # Command Line logic
+        ├── gui.py       # Basic Desktop GUI (Tkinter)
+        └── web_gui.py   # Modern Web Interface (Streamlit)
 ```
 
 ## Key Components
 
 ### 1. Data Layer (`src/data_loader/`)
-Handles loading pet traits and job requirements from server-specific subdirectories. It ensures that the unique identities of pets and tasks are maintained for the solver.
+Handles loading pet traits and job requirements from server-specific subdirectories. It ensures that pet names and tasks are correctly identified for the solver.
 
 ### 2. Core Logic (`src/core/`)
-- **Scoring**: Precomputes a reward matrix mapping every available pet to every potential job based on traits and rarity.
-- **Assignment**: The "brain" of the application. It uses `PuLP` to build a mathematical model of the dispatch problem and solve it for the global optimum.
+- **Scoring**: Precomputes a reward matrix mapping pets to potential jobs based on traits and rarity.
+- **Assignment**: The "brain" of the application. It builds a mathematical model using **Mixed Integer Linear Programming (MILP)** and solves it for the global optimum using the `PuLP` library.
 
 ### 3. UI Layer (`src/ui/`)
-- **CLI**: A lightweight command-line interface for quick calculations.
-- **GUI**: A `tkinter`-based desktop application providing a visual way to select pets, set borrow counts, and view recommended teams.
+- **Web GUI (`web_gui.py`)**: The primary interface. Built with Streamlit, it provides the most robust rendering for Chinese characters and features configuration save/load support.
+- **CLI (`main.py` / `cli.py`)**: A lightweight interface for quick calculations or automated runs using saved config files.
+- **Tkinter GUI (`gui.py`)**: A basic desktop fallback for environments without a web browser or Streamlit support.
 
 ## Server-Specific Logic
 The application dynamically switches its context based on the selected server (CN, GL, or KR). This affects:
-- The path used to load `pets.csv` and `jobs_*.csv`.
-- The reward tier names and thresholds used in result reporting.
+- The data paths (e.g., `data/gl/`).
+- The character encoding (Simplified vs. Traditional Chinese).
+- The reward tier labels and thresholds used in result reporting.

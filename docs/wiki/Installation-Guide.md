@@ -36,9 +36,11 @@ Every time you want to use the calculator, open your prompt/terminal and run:
 # 1. Activate the environment (only needs to be done once per session)
 conda activate petdispatch
 
-# 2. Run the Graphical Interface
-python -m src.ui.gui
+# 2. Run the Web Interface
+streamlit run src/ui/web_gui.py
 ```
+
+*This will open a new tab in your default web browser where you can use the calculator.*
 
 ---
 
