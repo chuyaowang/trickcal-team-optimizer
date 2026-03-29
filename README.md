@@ -17,6 +17,11 @@
 - \[KR\]: 需要更新。目前的韩服数据和国际服相同，仅做测试用。如果你可以更新数据，请先参考[贡献指南](docs/wiki/Contribution-Guide-CN.md)!
   - Translation: Currently the KR server uses the same data as the global server for testing only. If you are able to update, please refer to the [Contribution Guide](docs/wiki/Contribution-Guide.md) first!
 
+## Online App / 在线使用
+
+Click [here](https://trickcalpetdispatch.streamlit.app/) to use the online streamlit app.
+点击[此处](https://trickcalpetdispatch.streamlit.app/)使用在线的streamlit应用。
+
 ## English
 
 **ddl-PetDispatch** is a globally optimal pet assignment calculator for farm dispatch tasks in the game Trickcal: Chibi Go. It uses Mixed Integer Linear Programming (MILP) to find the best possible pet teams to maximize your reward tiers.
