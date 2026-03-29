@@ -55,15 +55,58 @@ with st.sidebar:
         horizontal=True
     )
     st.divider()
+    
+    # 1. Server Selection
+    st.header(t('SERVER_SETTINGS', st.session_state.lang))
+    server_names = t('SERVER_NAMES', st.session_state.lang)
+    server_list = list(server_names.keys())
+    
+    if st.session_state.server not in server_list: 
+        st.session_state.server = 'cn'
+    
+    server_idx = server_list.index(st.session_state.server)
+    server_key = st.radio(
+        t('SELECT_SERVER', st.session_state.lang), 
+        options=server_list, 
+        format_func=lambda x: server_names[x],
+        index=server_idx
+    )
+    st.session_state.server = server_key
+    
+    # 2. Job File Selection
+    job_files = get_available_job_files(server=server_key)
+    if job_files:
+        job_file_path = st.selectbox(
+            t('SELECT_JOB_FILE', st.session_state.lang), 
+            options=job_files, 
+            format_func=lambda x: os.path.basename(x),
+            index=len(job_files) - 1 # Default to latest (sorted alphabetically)
+        )
+    else:
+        st.error(t('TASK_FILE_NOT_FOUND', st.session_state.lang).format(server_key))
+        st.stop()
+        
+    # 3. Max Jobs (P)
+    p_limit = st.number_input(
+        t('MAX_JOBS', st.session_state.lang), 
+        min_value=2, 
+        max_value=5, 
+        value=st.session_state.p_limit,
+        step=1
+    )
+    st.session_state.p_limit = p_limit
+    
+    st.divider()
+    
     st.header(t('CONFIG_MGMT', st.session_state.lang))
     
     # Brief explanation
     if st.session_state.lang == 'cn':
-        st.info("💡 可跳过：上传之前保存的 .json 配置文件（按键在底部），可快速恢复您的宠物勾选和数量设置。")
+        st.info("💡 可跳过：上传之前保存的 .json 配置文件（按键在底部），可快速恢复您的宠物，界面，和服务器设置。")
     else:
-        st.info("💡 Optional: Upload a previously saved (button below) .json config to instantly restore your pets and counts.")
+        st.info("💡 Optional: Upload a previously saved (button below) .json config to instantly restore your pets, UI, and server settings.")
 
-    # 1. Read Config
+    # 4. Read Config
     uploaded_file = st.file_uploader(t('LOAD_CONFIG', st.session_state.lang), type=["json"])
     if uploaded_file is not None:
         try:
@@ -81,47 +124,6 @@ with st.sidebar:
             st.success(t('LOAD_SUCCESS', st.session_state.lang))
         except Exception as e:
             st.error(t('LOAD_FAIL', st.session_state.lang).format(e))
-
-    st.divider()
-    
-    # 2. Server Selection
-    st.header(t('SERVER_SETTINGS', st.session_state.lang))
-    server_names = t('SERVER_NAMES', st.session_state.lang)
-    server_list = list(server_names.keys())
-    
-    if st.session_state.server not in server_list: 
-        st.session_state.server = 'cn'
-    
-    server_idx = server_list.index(st.session_state.server)
-    server_key = st.radio(
-        t('SELECT_SERVER', st.session_state.lang), 
-        options=server_list, 
-        format_func=lambda x: server_names[x],
-        index=server_idx
-    )
-    st.session_state.server = server_key
-    
-    # 3. Job File Selection
-    job_files = get_available_job_files(server=server_key)
-    if job_files:
-        job_file_path = st.selectbox(
-            t('SELECT_JOB_FILE', st.session_state.lang), 
-            options=job_files, 
-            format_func=lambda x: os.path.basename(x)
-        )
-    else:
-        st.error(t('TASK_FILE_NOT_FOUND', st.session_state.lang).format(server_key))
-        st.stop()
-        
-    # 4. Max Jobs (P)
-    p_limit = st.number_input(
-        t('MAX_JOBS', st.session_state.lang), 
-        min_value=2, 
-        max_value=5, 
-        value=st.session_state.p_limit,
-        step=1
-    )
-    st.session_state.p_limit = p_limit
 
     st.divider()
     
@@ -154,6 +156,22 @@ st.title(t('APP_TITLE', st.session_state.lang))
 # --- DATA LOADING ---
 all_pets = load_pets(server=st.session_state.server)
 tasks = load_tasks(job_file_path)
+
+# --- TASK PREVIEW ---
+with st.expander(t('TASK_PREVIEW', st.session_state.lang), expanded=True):
+    # Filter out empty tasks for preview
+    preview_tasks = [t for t in tasks if t['task']]
+    if preview_tasks:
+        preview_df = pd.DataFrame([
+            {
+                t('TASK_NAME', st.session_state.lang): task['task'],
+                t('BONUS_TRAITS', st.session_state.lang): ", ".join(task['bonus_skills'])
+            }
+            for task in preview_tasks
+        ])
+        st.table(preview_df)
+    else:
+        st.write("No active tasks found in this file.")
 
 # --- RANK COLORS ---
 RANK_COLORS = {
