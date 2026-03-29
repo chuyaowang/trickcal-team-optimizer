@@ -7,7 +7,7 @@
 
 ⚠️ The pets and dispatch missions data may need to be updated for the CN server and definitely needs to be updated for the KR server. Currently the KR server uses the same data as the global server for testing only. If you are willing to update, please refer to [Contribution / 贡献指南](docs/wiki/Contribution-Guide.md) first!
 
-⚠️ 中国服的宠物和任务信息可能需要更新。韩服的信息一定需要更新。目前的韩服数据和国际服相同，仅做测试用。如果你可以更新数据，请先参考[Contribution / 贡献指南](docs/wiki/Contribution-Guide-CN.md)
+⚠️ 中国服的宠物和任务信息可能需要更新。韩服的信息一定需要更新。目前的韩服数据和国际服相同，仅做测试用。如果你可以更新数据，请先参考[Contribution / 贡献指南](docs/wiki/Contribution-Guide-CN.md)!
 
 
 ## English
@@ -23,17 +23,18 @@ conda create -n petdispatch python=3.9 -y && conda activate petdispatch && pip i
 ### 💻 How to Use
 
 #### 1. Web Interface (Recommended)
-Run the modern web-based UI:
+Run the modern web-based UI with **Multi-language support**:
 ```bash
 streamlit run src/ui/web_gui.py
 ```
-*   **Save/Load**: Use the sidebar to download your setup as a `.json` file and reload it later.
+*   **UI Language**: Toggle between English and Chinese in the sidebar.
+*   **Save/Load Configs**: Download your setup as a `.json` file and reload it instantly later.
 *   **Results**: View optimized teams directly on the same page.
 
 #### 2. Command Line (CLI)
 Run directly using a saved config file:
 ```bash
-python main.py --config your_config.json
+python main.py --config your_config.json --lang en
 ```
 
 ### 📖 Documentation
@@ -58,17 +59,18 @@ conda create -n petdispatch python=3.9 -y && conda activate petdispatch && pip i
 ### 💻 使用说明
 
 #### 1. 网页界面 (推荐)
-启动现代化的网页版 UI：
+启动支持**多语言切换**的现代网页版 UI：
 ```bash
 streamlit run src/ui/web_gui.py
 ```
-*   **保存与读取**: 在侧边栏可以将您当前的宠物配置下载为 `.json` 文件，下次使用时直接上传即可。
-*   **实时结果**: 方案计算结果将直接显示在输入区域下方。
+*   **UI语言切换**: 在侧边栏可自由切换中英文界面。
+*   **保存与读取**: 在侧边栏可以将您当前的宠物配置下载为 `.json` 文件，下次使用时直接上传。
+*   **彩色面板**: 方案计算结果以不同颜色的卡片显示在输入区域下方。
 
 #### 2. 命令行界面 (CLI)
 使用已保存的配置文件直接运行：
 ```bash
-python main.py --config 你的配置文件.json
+python main.py --config 你的配置文件.json --lang cn
 ```
 
 ### 📖 相关文档

@@ -1,74 +1,78 @@
 from typing import List, Dict
 import os
 from src.core.scoring import get_reward_level
+from src.core.i18n import t
 
-def select_server() -> str:
+def select_server(lang='cn') -> str:
     """让用户选择服务器"""
-    servers = {
-        '1': ('cn', '中国服 (CN)'),
-        '2': ('gl', '国际服 (GL)'),
-        '3': ('kr', '韩服 (KR)')
-    }
-    print("\n===== 选择服务器 =====")
-    for k, v in servers.items():
-        print(f"{k}. {v[1]}")
+    server_names = t('SERVER_NAMES', lang)
+    server_list = list(server_names.keys())
+    
+    print(f"\n===== {t('SELECT_SERVER', lang)} =====")
+    for i, s_key in enumerate(server_list, 1):
+        print(f"{i}. {server_names[s_key]}")
     
     while True:
-        choice = input("请选择服务器（输入序号）：")
-        if choice in servers:
-            return servers[choice][0]
-        print("无效的选择，请重试。")
+        try:
+            choice = input(f"{t('SELECT_SERVER', lang)}: ")
+            idx = int(choice) - 1
+            if 0 <= idx < len(server_list):
+                return server_list[idx]
+            else:
+                print(f"1-{len(server_list)}")
+        except ValueError:
+            print("Number only")
 
-def select_job_file(job_files: List[str]) -> str:
+def select_job_file(job_files: List[str], lang='cn') -> str:
     """让用户选择一个任务CSV文件"""
-    print("\n===== 可选任务文件 =====")
+    print(f"\n===== {t('SELECT_JOB_FILE', lang)} =====")
     for i, file_path in enumerate(job_files, 1):
         print(f"{i}. {os.path.basename(file_path)}")
     
     while True:
         try:
-            choice = input("请选择任务文件（输入序号）：")
+            choice = input(f"{t('SELECT_JOB_FILE', lang)}: ")
             selected_idx = int(choice) - 1
             if 0 <= selected_idx < len(job_files):
                 return job_files[selected_idx]
             else:
-                print(f"请输入1到{len(job_files)}之间的序号。")
+                print(f"1-{len(job_files)}")
         except ValueError:
-            print("请输入有效的数字序号。")
+            print("Number only")
 
-def show_pets(pets: List[Dict], skill_scores: Dict[str, int]):
+def show_pets(pets: List[Dict], skill_scores: Dict[str, int], lang='cn'):
     """显示所有宠物列表"""
-    print("\n===== 所有宠物列表 =====")
+    print(f"\n===== {t('MY_PETS', lang)} =====")
     score_to_level = {v: k for k, v in skill_scores.items()}
     for i, pet in enumerate(pets, 1):
         skill_str = ', '.join([f"{k}({score_to_level.get(v, v)})" for k, v in pet['skill_score'].items()])
-        print(f"{i}. {pet['name']} - {pet['rarity']} - 特性：{skill_str}")
+        print(f"{i}. {pet['name']} - {pet['rarity']} - {skill_str}")
 
-def select_owned_pets(pets: List[Dict]) -> List[Dict]:
+def select_owned_pets(pets: List[Dict], lang='cn') -> List[Dict]:
     """让用户选择自己拥有的宠物"""
-    print("\n===== 选择自己拥有的宠物 =====")
+    print(f"\n===== {t('MY_PETS', lang)} =====")
     while True:
         try:
-            choice = input("请选择自己拥有的宠物（输入序号，用空格分隔）：")
+            choice = input(t('CLI_PET_SELECTION', lang))
             selected_indices = [int(x) - 1 for x in choice.split()]
             selected_indices = list(set(selected_indices))
             
             invalid_indices = [idx + 1 for idx in selected_indices if not (0 <= idx < len(pets))]
             if invalid_indices:
-                print(f"以下序号无效：{', '.join(map(str, invalid_indices))}，请重新输入。")
+                print(f"Invalid: {', '.join(map(str, invalid_indices))}")
                 continue
             
             return [pets[idx].copy() for idx in selected_indices]
         except ValueError:
-            print("请输入有效的数字序号，用空格分隔。")
+            print("Number only")
 
-def select_farm_pets(pets: List[Dict]) -> Dict[str, int]:
-    """让用户选择农场拥有的宠物及其数量 (MILP使用)"""
-    print("\n===== 选择农场拥有的宠物 (借用) =====")
-    print("输入格式: 序号:数量 (例如 1:1 5:3)，用空格分隔")
+def select_farm_pets(pets: List[Dict], lang='cn') -> Dict[str, int]:
+    """让用户选择农场拥有的宠物及其数量"""
+    print(f"\n===== {t('BORROW_PETS', lang)} =====")
     while True:
         try:
-            choice = input("请选择农场宠物及其数量：")
+            print(t('CLI_BORROW_EXAMPLE', lang))
+            choice = input(": ")
             if not choice.strip():
                 return {}
             
@@ -77,7 +81,6 @@ def select_farm_pets(pets: List[Dict]) -> Dict[str, int]:
             valid = True
             for part in parts:
                 if ':' not in part:
-                    print(f"格式错误: {part} (应为 序号:数量)")
                     valid = False
                     break
                 idx_str, count_str = part.split(':')
@@ -85,7 +88,6 @@ def select_farm_pets(pets: List[Dict]) -> Dict[str, int]:
                 count = int(count_str)
                 
                 if not (0 <= idx < len(pets)):
-                    print(f"无效序号: {idx + 1}")
                     valid = False
                     break
                 
@@ -93,48 +95,46 @@ def select_farm_pets(pets: List[Dict]) -> Dict[str, int]:
             
             if valid:
                 return aux_pets
+            print("Invalid format")
         except ValueError:
-            print("请输入有效的数字和格式。")
+            print("Number only")
 
-def select_task_count() -> int:
-    """让用户选择可执行任务数量 (P参数)"""
-    print("\n===== 选择任务数量 (2-5) =====")
+def select_task_count(lang='cn') -> int:
+    """让用户选择可执行任务数量"""
+    print(f"\n===== {t('MAX_JOBS', lang)} =====")
     while True:
         try:
-            choice = input("请选择可执行任务数量：")
+            choice = input(f"{t('MAX_JOBS', lang)}: ")
             count = int(choice)
             if 2 <= count <= 5:
                 return count
             else:
-                print("请输入2到5之间的数字。")
+                print("2-5")
         except ValueError:
-            print("请输入有效的数字。")
+            print("Number only")
 
-def display_results(result: Dict, server: str, calc_time: float):
-    """输出最优派遣方案结果 (MILP版)"""
+def display_results(result: Dict, server: str, lang='cn', calc_time: float = 0.0):
+    """输出最优派遣方案结果"""
     print("\n" + "="*30)
-    print("===== 最优派遣方案结果 (MILP) =====")
-    print(f"✅ 计算完成！总耗时：{calc_time:.2f} 秒")
-    print(f"服务器：{server}")
+    print(f"===== {t('RESULTS', lang)} =====")
+    print(f"✅ {t('OPTIMAL_FOUND', lang)} | {t('CALC_TIME', lang)}: {calc_time:.2f} s")
     
     if result.get('status') != 'Optimal':
-        print(f"未找到最优解。状态: {result.get('status')}")
+        print(t('NO_OPTIMAL', lang).format(result.get('status')))
         return
 
-    print(f"总计层级奖励分：{result['total']}")
-    print(f"借用宠物总数：{result['borrowed']}")
-    print(f"使用宠物总数：{result['total_pets']}")
+    print(f"{t('TOTAL_REWARD', lang)}: {result['total']}")
+    print(f"{t('TOTAL_BORROWED', lang)}: {result['borrowed']}")
 
     for i, assign in enumerate(result['assignments'], 1):
         task = assign['task']
         team = assign['team']
         score = assign['score']
         reward_level = get_reward_level(score, server)
-        print(f"\n--- 任务{i} ---")
-        print(f"任务名称：{task['task']}")
-        print(f"加成特性：{', '.join(task['bonus_skills'])}")
+        print(f"\n--- {t('STATUS', lang)} {i} ---")
+        print(f"{t('TASK_NAME', lang)}: {task['task']}")
         
-        pet_names = [f"{pet['name']}{'（借）' if pet.get('is_borrowed', False) else ''}" for pet in team]
-        print(f"派遣宠物：{', '.join(pet_names)}")
-        print(f"任务得分：{score}")
-        print(f"奖励等级：{reward_level}")
+        borrow_tag = " (借)" if lang == 'cn' else " (Borrow)"
+        pet_names = [f"{pet['name']}{borrow_tag if pet.get('is_borrowed', False) else ''}" for pet in team]
+        print(f"{t('DISPATCH_TEAM', lang)}: {', '.join(pet_names)}")
+        print(f"{t('RAW_SCORE', lang)}: {score} -> {reward_level}")

@@ -12,7 +12,7 @@ from src.core.assignment import calculate_best_assignment
 class DispatchCalculatorGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("宠物派遣计算器")
+        self.root.title("宠物派遣计算器 (Basic)")
         self.root.geometry("900x900")
         
         self.all_pets = []
@@ -35,9 +35,9 @@ class DispatchCalculatorGUI:
         server_frame.pack(padx=10, pady=5, fill=tk.X)
         
         self.server_var = tk.StringVar(value="cn")
-        servers = [("中国服 (CN)", "cn"), ("国际服 (GL)", "gl"), ("韩服 (KR)", "kr")]
+        servers = [("中国服 (CN)", "cn"), ("国际服 (GL-CN)", "gl-cn"), ("国际服 (GL-EN)", "gl-en"), ("韩服 (KR)", "kr")]
         for text, mode in servers:
-            ttk.Radiobutton(server_frame, text=text, variable=self.server_var, value=mode, command=self.on_server_change).pack(side=tk.LEFT, padx=20, pady=5)
+            ttk.Radiobutton(server_frame, text=text, variable=self.server_var, value=mode, command=self.on_server_change).pack(side=tk.LEFT, padx=15, pady=5)
 
         # 任务文件选择
         job_file_frame = ttk.LabelFrame(self.root, text="2. 选择任务文件")
@@ -210,7 +210,7 @@ class DispatchCalculatorGUI:
             self.result_text.insert(tk.END, f"\n未找到最优解。状态: {result.get('status')}\n")
             return
 
-        self.result_text.insert(tk.END, f"\n计算完成！总耗时：{calc_time:.2f} 秒\n")
+        self.result_text.insert(tk.END, f"\n✅ 计算完成！总耗时：{calc_time:.2f} 秒\n")
         self.result_text.insert(tk.END, f"总计奖励分：{result['total']}\n")
         self.result_text.insert(tk.END, f"借用宠物总数：{result['borrowed']} | 使用宠物总数：{result['total_pets']}\n")
         self.result_text.insert(tk.END, "-"*50 + "\n")

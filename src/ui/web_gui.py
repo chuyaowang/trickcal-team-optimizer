@@ -14,53 +14,84 @@ if project_root not in sys.path:
 from src.data_loader.csv_loader import load_pets, load_tasks, get_available_job_files
 from src.core.scoring import precompute_pet_task_scores, get_reward_level
 from src.core.assignment import calculate_best_assignment
+from src.core.i18n import t
 
 # --- PAGE CONFIG ---
 st.set_page_config(
-    page_title="宠物派遣计算器",
-    page_icon="🐾",
+    page_title="🐾 ddl-PetDispatch",
     layout="wide"
 )
 
-st.title("🐾 宠物派遣最优方案计算器 (MILP)")
-
 # --- SESSION STATE INITIALIZATION ---
+if 'lang' not in st.session_state:
+    st.session_state.lang = 'cn'
 if 'server' not in st.session_state:
     st.session_state.server = 'cn'
 if 'p_limit' not in st.session_state:
     st.session_state.p_limit = 5
-if 'owned_pets_list' not in st.session_state:
-    st.session_state.owned_pets_list = []
-if 'aux_pets_dict' not in st.session_state:
-    st.session_state.aux_pets_dict = {}
 
-# --- SIDEBAR: CONFIG LOAD/SAVE ---
+# --- HELPER: GET CURRENT CONFIG ---
+def get_current_config():
+    """Extracts the current state directly from widget keys to ensure it's up-to-date."""
+    owned = [k.replace("chk_", "") for k, v in st.session_state.items() if k.startswith("chk_") and v]
+    aux = {k.replace("num_", ""): v for k, v in st.session_state.items() if k.startswith("num_") and v > 0}
+    return {
+        "server": st.session_state.server,
+        "max_job_number": st.session_state.p_limit,
+        "owned_pets": owned,
+        "aux_pets_counts": aux,
+        "ui_language": st.session_state.lang
+    }
+
+# --- SIDEBAR: CONFIG & LANGUAGE ---
 with st.sidebar:
-    st.header("💾 配置管理")
+    st.header(t('LANGUAGE', st.session_state.lang))
+    lang_options = {"cn": "简体中文", "en": "English"}
+    st.session_state.lang = st.radio(
+        "Select Language", 
+        options=list(lang_options.keys()), 
+        format_func=lambda x: lang_options[x],
+        index=0 if st.session_state.lang == 'cn' else 1,
+        horizontal=True
+    )
+    
+    st.divider()
+    st.header(t('CONFIG_MGMT', st.session_state.lang))
     
     # 1. Read Config
-    uploaded_file = st.file_uploader("读取配置文件 (.json)", type=["json"])
+    uploaded_file = st.file_uploader(t('LOAD_CONFIG', st.session_state.lang), type=["json"])
     if uploaded_file is not None:
         try:
             config = json.load(uploaded_file)
             st.session_state.server = config.get('server', 'cn')
             st.session_state.p_limit = config.get('max_job_number', 5)
-            st.session_state.owned_pets_list = config.get('owned_pets', [])
-            st.session_state.aux_pets_dict = config.get('aux_pets_counts', {})
-            st.success("配置已从文件加载！")
+            st.session_state.lang = config.get('ui_language', st.session_state.lang)
+            
+            # Pre-populate widget keys so they are ready when rendered
+            for pet_name in config.get('owned_pets', []):
+                st.session_state[f"chk_{pet_name}"] = True
+            for pet_name, count in config.get('aux_pets_counts', {}).items():
+                st.session_state[f"num_{pet_name}"] = count
+                
+            st.success(t('LOAD_SUCCESS', st.session_state.lang))
         except Exception as e:
-            st.error(f"读取失败: {e}")
+            st.error(t('LOAD_FAIL', st.session_state.lang).format(e))
 
     st.divider()
     
     # 2. Server Selection
-    server_options = {"cn": "中国服 (CN)", "gl": "国际服 (GL)", "kr": "韩服 (KR)"}
-    server_list = list(server_options.keys())
+    st.header(t('SERVER_SETTINGS', st.session_state.lang))
+    server_names = t('SERVER_NAMES', st.session_state.lang)
+    server_list = list(server_names.keys())
+    
+    if st.session_state.server not in server_list: 
+        st.session_state.server = 'cn'
+    
     server_idx = server_list.index(st.session_state.server)
     server_key = st.radio(
-        "选择服务器", 
+        t('SELECT_SERVER', st.session_state.lang), 
         options=server_list, 
-        format_func=lambda x: server_options[x],
+        format_func=lambda x: server_names[x],
         index=server_idx
     )
     st.session_state.server = server_key
@@ -69,17 +100,17 @@ with st.sidebar:
     job_files = get_available_job_files(server=server_key)
     if job_files:
         job_file_path = st.selectbox(
-            "选择任务文件", 
+            t('SELECT_JOB_FILE', st.session_state.lang), 
             options=job_files, 
             format_func=lambda x: os.path.basename(x)
         )
     else:
-        st.error(f"未找到 data/{server_key} 任务文件")
+        st.error(t('TASK_FILE_NOT_FOUND', st.session_state.lang).format(server_key))
         st.stop()
         
     # 4. Max Jobs (P)
     p_limit = st.number_input(
-        "最大并行任务数量 (P)", 
+        t('MAX_JOBS', st.session_state.lang), 
         min_value=2, 
         max_value=5, 
         value=st.session_state.p_limit,
@@ -90,100 +121,96 @@ with st.sidebar:
     st.divider()
     
     # 5. Save Config (Download)
-    config_to_save = {
-        "server": st.session_state.server,
-        "max_job_number": st.session_state.p_limit,
-        "owned_pets": st.session_state.owned_pets_list,
-        "aux_pets_counts": st.session_state.aux_pets_dict
-    }
+    # Note: This is now reactive to the current session state keys
+    current_cfg = get_current_config()
     st.download_button(
-        label="📥 下载当前配置",
-        data=json.dumps(config_to_save, indent=4, ensure_ascii=False),
+        label=t('SAVE_CONFIG', st.session_state.lang),
+        data=json.dumps(current_cfg, indent=4, ensure_ascii=False),
         file_name=f"dispatch_config_{server_key}.json",
         mime="application/json"
     )
+
+# --- MAIN AREA ---
+st.title(t('APP_TITLE', st.session_state.lang))
 
 # --- DATA LOADING ---
 all_pets = load_pets(server=st.session_state.server)
 tasks = load_tasks(job_file_path)
 
+# --- RANK COLORS ---
+RANK_COLORS = {
+    "特阶": "#FFD700", "一阶": "#FFEC8B", "二阶": "#C0C0C0", 
+    "三阶": "#CD7F32", "四阶": "#A0522D", "无奖励": "#F0F2F6",
+    "S": "#FFD700", "A": "#FFEC8B", "B": "#C0C0C0", 
+    "C": "#CD7F32", "D": "#A0522D", "N/A": "#F0F2F6"
+}
+
 # --- MAIN AREA: PET SELECTION ---
 col_owned, col_aux = st.columns(2)
 
 with col_owned:
-    st.subheader("📋 我拥有的宠物")
-    owned_search = st.text_input("搜索拥有宠物...", key="owned_search")
+    st.subheader(t('MY_PETS', st.session_state.lang))
+    owned_search = st.text_input(t('SEARCH_PETS', st.session_state.lang), key="owned_search")
     
-    # Scrollable container using expander
-    with st.expander("选择拥有的宠物 (勾选)", expanded=True):
+    with st.expander(t('EXPAND_PET_LIST', st.session_state.lang), expanded=True):
         new_owned_selection = []
-        
-        # Filter pets based on search or current selection
+        # Filter pets based on search or current selection in session state
         filtered_owned = [
             p for p in all_pets 
-            if owned_search.lower() in p['name'].lower() or p['name'] in st.session_state.owned_pets_list
+            if owned_search.lower() in p['name'].lower() or st.session_state.get(f"chk_{p['name']}", False)
         ]
         
-        # Display in a grid of 2 columns
         o_cols = st.columns(2)
         for i, pet in enumerate(filtered_owned):
             name = pet['name']
-            is_selected = name in st.session_state.owned_pets_list
             with o_cols[i % 2]:
-                if st.checkbox(f"{name}", value=is_selected, key=f"chk_{name}"):
+                if st.checkbox(f"{name}", key=f"chk_{name}"):
                     new_owned_selection.append(name)
-        
-        st.session_state.owned_pets_list = sorted(list(set(new_owned_selection)))
 
 with col_aux:
-    st.subheader("🤝 借用宠物数量")
-    aux_search = st.text_input("搜索借用宠物...", key="aux_search")
+    st.subheader(t('BORROW_PETS', st.session_state.lang))
+    aux_search = st.text_input(t('SEARCH_PETS', st.session_state.lang) + " ", key="aux_search")
     
-    with st.expander("设置可借用副本数", expanded=True):
-        new_aux_dict = {}
-        # Filter pets based on search or non-zero count
-        filtered_pets = [
+    with st.expander(t('SET_BORROW_COPIES', st.session_state.lang), expanded=True):
+        # Filter pets based on search or non-zero count in session state
+        filtered_aux = [
             p for p in all_pets 
-            if aux_search.lower() in p['name'].lower() or st.session_state.aux_pets_dict.get(p['name'], 0) > 0
+            if aux_search.lower() in p['name'].lower() or st.session_state.get(f"num_{p['name']}", 0) > 0
         ]
         
-        # Display in a grid of 3 columns
         cols = st.columns(3)
-        for i, pet in enumerate(filtered_pets):
+        for i, pet in enumerate(filtered_aux):
             name = pet['name']
-            current_count = st.session_state.aux_pets_dict.get(name, 0)
-            
-            # Distribute into columns
             with cols[i % 3]:
-                count = st.number_input(
+                st.number_input(
                     f"{name}", 
                     min_value=0, 
                     max_value=20, 
-                    value=int(current_count), 
-                    key=f"num_{name}",
-                    label_visibility="visible"
+                    step=1, 
+                    key=f"num_{name}"
                 )
-                if count > 0:
-                    new_aux_dict[name] = count
-        st.session_state.aux_pets_dict = new_aux_dict
 
 # --- CALCULATION & RESULTS ---
 st.divider()
-run_calc = st.button("🚀 开始计算最优派遣方案", use_container_width=True, type="primary")
+run_calc = st.button(t('RUN_OPTIMIZER', st.session_state.lang), use_container_width=True, type="primary")
 
 if run_calc:
-    if not st.session_state.owned_pets_list:
-        st.warning("请至少选择一个拥有的宠物。")
+    # Final check of selections
+    owned_pet_names = [k.replace("chk_", "") for k, v in st.session_state.items() if k.startswith("chk_") and v]
+    aux_pets_counts = {k.replace("num_", ""): v for k, v in st.session_state.items() if k.startswith("num_") and v > 0}
+    
+    if not owned_pet_names:
+        st.warning(t('SELECT_OWNED_WARNING', st.session_state.lang))
     else:
-        st.header("📊 计算结果")
-        owned_pet_objs = [p for p in all_pets if p['name'] in st.session_state.owned_pets_list]
+        st.header(t('RESULTS', st.session_state.lang))
+        owned_pet_objs = [p for p in all_pets if p['name'] in owned_pet_names]
         
-        with st.spinner("正在运行 MILP 求解器..."):
+        with st.spinner(t('STATUS', st.session_state.lang) + "..."):
             pet_task_scores = precompute_pet_task_scores(all_pets, tasks)
             start_time = time.time()
             result = calculate_best_assignment(
                 my_pets=owned_pet_objs,
-                aux_pets_counts=st.session_state.aux_pets_dict,
+                aux_pets_counts=aux_pets_counts,
                 tasks=tasks,
                 pet_task_scores=pet_task_scores,
                 max_active_jobs=st.session_state.p_limit
@@ -191,13 +218,13 @@ if run_calc:
             calc_time = time.time() - start_time
             
             if result.get('status') != 'Optimal':
-                st.error(f"未找到最优解。状态: {result.get('status')}")
+                st.error(t('NO_OPTIMAL', st.session_state.lang).format(result.get('status')))
             else:
                 st.balloons()
                 m1, m2, m3 = st.columns(3)
-                m1.metric("总计层级奖励分", result['total'])
-                m2.metric("借用宠物总数", result['borrowed'])
-                m3.metric("计算耗时 (秒)", f"{calc_time:.3f}")
+                m1.metric(t('TOTAL_REWARD', st.session_state.lang), result['total'])
+                m2.metric(t('TOTAL_BORROWED', st.session_state.lang), result['borrowed'])
+                m3.metric(t('CALC_TIME', st.session_state.lang), f"{calc_time:.3f}")
                 
                 for i, assign in enumerate(result['assignments'], 1):
                     task = assign['task']
@@ -205,12 +232,20 @@ if run_calc:
                     score = assign['score']
                     reward_level = get_reward_level(score, st.session_state.server)
                     
-                    with st.expander(f"任务 {i}: {task['task']} ({reward_level})", expanded=True):
-                        c1, c2 = st.columns([2, 1])
-                        with c1:
-                            st.markdown("**派遣队伍:**")
-                            pet_list = [f"{p['name']} {' (借)' if p['is_borrowed'] else ''}" for p in team]
-                            st.write(", ".join(pet_list))
-                        with c2:
-                            st.write(f"**原始得分:** {score}")
-                            st.write(f"**加成特性:** {', '.join(task['bonus_skills'])}")
+                    bg_color = RANK_COLORS.get(reward_level, "#F0F2F6")
+                    borrow_tag = " (借)" if st.session_state.lang == 'cn' else " (Borrow)"
+                    pet_list_str = ", ".join([f"{p['name']}{borrow_tag if p['is_borrowed'] else ''}" for p in team])
+                    
+                    st.markdown(f"""
+                        <div style="background-color: {bg_color}; padding: 8px 12px; border-radius: 8px; border: 1px solid #ddd; color: black; margin-bottom: 10px;">
+                            <div style="font-size: 1.0em; font-weight: bold; color: #333;">{t('STATUS', st.session_state.lang)} {i}: {task['task']}</div>
+                            <div style="font-size: 1.1em; font-weight: bold; margin: 4px 0;">{reward_level} ({score} pts)</div>
+                            <hr style="margin: 6px 0; border: 0; border-top: 1px solid rgba(0,0,0,0.1);">
+                            <div style="display: flex; flex-wrap: wrap; gap: 15px; font-size: 0.95em;">
+                                <div><strong>{t('DISPATCH_TEAM', st.session_state.lang)}:</strong> {pet_list_str}</div>
+                                <div><strong>{t('BONUS_TRAITS', st.session_state.lang)}:</strong> {', '.join(task['bonus_skills'])}</div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+else:
+    st.info(t('INFO_TEXT', st.session_state.lang))

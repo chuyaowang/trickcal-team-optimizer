@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import glob
 from typing import List, Dict
-from src.core.constants import RARITY_BASE_MAP, SKILL_SCORE_MAP
+from src.core.constants import get_rarity_map, SKILL_SCORE_MAP
 
 def get_available_job_files(server: str = 'cn', data_dir: str = './data') -> List[str]:
     """获取指定服务器目录下的所有jobs_*.csv文件"""
@@ -12,6 +12,8 @@ def get_available_job_files(server: str = 'cn', data_dir: str = './data') -> Lis
 def load_pets(server: str = 'cn', data_dir: str = './data') -> List[Dict]:
     """从指定服务器目录下读取宠物列表"""
     file_path = os.path.join(data_dir, server, 'pets.csv')
+    rarity_map = get_rarity_map(server)
+    
     try:
         df = pd.read_csv(file_path)
     except FileNotFoundError:
@@ -34,7 +36,7 @@ def load_pets(server: str = 'cn', data_dir: str = './data') -> List[Dict]:
         pets.append({
             'name': pet_name,
             'rarity': rarity,
-            'rarity_score': RARITY_BASE_MAP.get(rarity, 2),
+            'rarity_score': rarity_map.get(rarity, 2),
             'skill_score': skill_score,
             'is_borrowed': False
         })
