@@ -38,12 +38,33 @@ if 'server' not in st.session_state:
     st.session_state.server = 'cn'
 if 'p_limit' not in st.session_state:
     st.session_state.p_limit = 5
-if 'last_processed_upload' not in st.session_state:
-    st.session_state.last_processed_upload = None
+if 'msg_success' not in st.session_state:
+    st.session_state.msg_success = False
+if 'msg_error' not in st.session_state:
+    st.session_state.msg_error = None
+
+# --- CONFIG UPLOAD CALLBACK (The Streamlit-Native Fix for Reversal Bug) ---
+def on_config_upload():
+    """Processes config file only when a new file is uploaded."""
+    uploaded_file = st.session_state.config_uploader
+    if uploaded_file is not None:
+        try:
+            config = json.load(uploaded_file)
+            # Safe to update these because the widgets haven't rendered yet in this run
+            st.session_state.server = config.get('server', st.session_state.server)
+            st.session_state.p_limit = config.get('max_job_number', st.session_state.p_limit)
+            st.session_state.lang = config.get('ui_language', st.session_state.lang)
+            
+            for pet_name in config.get('owned_pets', []):
+                st.session_state[f"chk_{pet_name}"] = True
+            for pet_name, count in config.get('aux_pets_counts', {}).items():
+                st.session_state[f"num_{pet_name}"] = count
+            st.session_state.msg_success = True
+        except Exception as e:
+            st.session_state.msg_error = str(e)
 
 # --- HELPER: GET CURRENT CONFIG ---
 def get_current_config():
-    """Extracts the current state directly from widget keys."""
     owned = [k.replace("chk_", "") for k, v in st.session_state.items() if k.startswith("chk_") and v]
     aux = {k.replace("num_", ""): v for k, v in st.session_state.items() if k.startswith("num_") and v > 0}
     return {
@@ -57,18 +78,13 @@ def get_current_config():
 # --- SIDEBAR START ---
 with st.sidebar:
     st.header(t('LANGUAGE', st.session_state.lang))
-    lang_list = ["cn", "en"]
-    lang_idx = lang_list.index(st.session_state.lang)
-    new_lang = st.radio(
-        "UI Language Selector",
-        options=lang_list,
+    st.radio(
+        "Select Language", 
+        options=["cn", "en"], 
         format_func=lambda x: "简体中文" if x == "cn" else "English",
-        index=lang_idx,
-        horizontal=True,
-        label_visibility="collapsed"
+        key='lang',
+        horizontal=True
     )
-    st.session_state.lang = new_lang
-    
     st.divider()
     
     # 1. Server Selection
@@ -76,80 +92,59 @@ with st.sidebar:
     server_names = t('SERVER_NAMES', st.session_state.lang)
     server_list = list(server_names.keys())
     
-    # Ensure current server is valid
-    if st.session_state.server not in server_list:
-        st.session_state.server = 'cn'
-        
-    server_idx = server_list.index(st.session_state.server)
-    st.markdown(f"**{t('SELECT_SERVER', st.session_state.lang)}**")
-    new_server = st.radio(
-        "Server Selector",
-        options=server_list,
+    st.radio(
+        t('SELECT_SERVER', st.session_state.lang), 
+        options=server_list, 
         format_func=lambda x: server_names[x],
-        index=server_idx,
-        label_visibility="collapsed"
+        key='server'
     )
-    st.session_state.server = new_server
     
     # 2. Job File Selection
     job_files = get_available_job_files(server=st.session_state.server)
     if job_files:
-        st.markdown(f"**{t('SELECT_JOB_FILE', st.session_state.lang)}**")
-        # Use server-specific key to force reset when server changes, but keep index stable
         job_file_path = st.selectbox(
-            "Job File Selector",
-            options=job_files,
+            t('SELECT_JOB_FILE', st.session_state.lang), 
+            options=job_files, 
             format_func=lambda x: os.path.basename(x),
             index=len(job_files) - 1,
-            key=f"job_select_{st.session_state.server}",
-            label_visibility="collapsed"
+            key=f"job_select_{st.session_state.server}"
         )
     else:
         st.error(t('TASK_FILE_NOT_FOUND', st.session_state.lang).format(st.session_state.server))
         st.stop()
         
     # 3. Max Jobs (P)
-    st.markdown(f"**{t('MAX_JOBS', st.session_state.lang)}**")
-    new_p = st.number_input(
-        "Max Jobs Input",
-        min_value=2,
-        max_value=5,
-        value=int(st.session_state.p_limit),
+    st.number_input(
+        t('MAX_JOBS', st.session_state.lang), 
+        min_value=2, 
+        max_value=5, 
         step=1,
-        label_visibility="collapsed"
+        key='p_limit'
     )
-    st.session_state.p_limit = new_p
     
     st.divider()
     
     # 4. Configuration Management
     st.header(t('CONFIG_MGMT', st.session_state.lang))
     if st.session_state.lang == 'cn':
-        st.info("💡 可跳过：上传之前保存的 .json 配置文件（按键在底部），可快速恢复您的宠物，界面，和服务器设置。")
+        st.info("💡 可跳过：上传之前保存的 .json 配置文件（按键在底部），可快速恢复设置。")
     else:
-        st.info("💡 Optional: Upload a previously saved (button below) .json config to instantly restore your pets, UI, and server settings.")
-    # Load Config
-    uploaded_file = st.file_uploader(t('LOAD_CONFIG', st.session_state.lang), type=["json"])
-    # Logic to handle upload once
-    if uploaded_file is not None and uploaded_file != st.session_state.last_processed_upload:
-        try:
-            config = json.load(uploaded_file)
-            st.session_state.server = config.get('server', st.session_state.server)
-            st.session_state.p_limit = config.get('max_job_number', st.session_state.p_limit)
-            st.session_state.lang = config.get('ui_language', st.session_state.lang)
-            
-            for pet_name in config.get('owned_pets', []):
-                st.session_state[f"chk_{pet_name}"] = True
-            for pet_name, count in config.get('aux_pets_counts', {}).items():
-                st.session_state[f"num_{pet_name}"] = count
-                
-            st.session_state.last_processed_upload = uploaded_file
-            st.success(t('LOAD_SUCCESS', st.session_state.lang))
-            st.rerun()
-        except Exception as e:
-            st.error(t('LOAD_FAIL', st.session_state.lang).format(e))
-    elif uploaded_file is None:
-        st.session_state.last_processed_upload = None
+        st.info("💡 Optional: Upload a previously saved .json config to instantly restore settings.")
+
+    # Load Config (Using callback to fix reversal bug)
+    st.file_uploader(
+        t('LOAD_CONFIG', st.session_state.lang), 
+        type=["json"], 
+        key='config_uploader', 
+        on_change=on_config_upload
+    )
+    
+    if st.session_state.msg_success:
+        st.success(t('LOAD_SUCCESS', st.session_state.lang))
+        st.session_state.msg_success = False
+    if st.session_state.msg_error:
+        st.error(t('LOAD_FAIL', st.session_state.lang).format(st.session_state.msg_error))
+        st.session_state.msg_error = None
 
     # Save Config
     current_cfg = get_current_config()
@@ -190,6 +185,8 @@ with st.expander(t('TASK_PREVIEW', st.session_state.lang), expanded=True):
             for task in preview_tasks
         ])
         st.table(preview_df)
+    else:
+        st.write("No active tasks found in this file.")
 
 # Rank Colors
 RANK_COLORS = {

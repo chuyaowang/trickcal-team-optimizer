@@ -110,3 +110,4 @@ venv.bak/
 GEMINI.md
 test.ipynb
 .gemini/
+data/test/
