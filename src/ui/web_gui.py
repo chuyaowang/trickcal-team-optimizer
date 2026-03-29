@@ -54,7 +54,6 @@ with st.sidebar:
         index=0 if st.session_state.lang == 'cn' else 1,
         horizontal=True
     )
-    
     st.divider()
     st.header(t('CONFIG_MGMT', st.session_state.lang))
     
@@ -135,6 +134,17 @@ with st.sidebar:
         file_name=f"dispatch_config_{server_key}.json",
         mime="application/json"
     )
+    
+    # GitHub Link
+    github_url = "https://github.com/chuyaowang/ddl-PetDispatch/tree/modularize-and-refactor"
+    st.markdown(f"""
+        <div style="margin-top: -10px; margin-bottom: 20px;">
+            <a href="{github_url}" target="_blank" style="text-decoration: none; color: inherit;">
+                <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="20" style="vertical-align: middle; margin-right: 5px;">
+                <span style="vertical-align: middle; font-size: 14px;">{t('VIEW_ON_GITHUB', st.session_state.lang)}</span>
+            </a>
+        </div>
+    """, unsafe_allow_html=True)
 
 # --- MAIN AREA ---
 st.title(t('APP_TITLE', st.session_state.lang))
