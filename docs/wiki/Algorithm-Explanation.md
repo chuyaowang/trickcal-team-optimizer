@@ -4,11 +4,13 @@ This project uses **Mixed Integer Linear Programming (MILP)** to solve the pet d
 
 ## Core Objective
 
-The goal is to maximize the **Total Rewards** (carrots) across all selected jobs. 
+The goal is to maximize the **Total Rewards** (carrots) across all selected jobs, while minimizing the number of assigned pets in case of a tie. 
 
-$$ \text{Maximize } \sum_{j \in Jobs} \sum_{t \in Tiers} R(t) \cdot v_{j,t} $$
+$$ \text{Maximize } \left( \sum_{j \in Jobs} \sum_{t \in Tiers} R(t) \cdot v_{j,t} \right) - \left( 0.0001 \cdot \sum_{w \in Workers} \sum_{j \in Jobs} x_{w,j} \right) $$
 
-where $v_{j,t}$ is a binary variable that is 1 if job $j$ achieves reward tier $t$, and $R(t)$ is the actual carrot reward for that tier. This ensures the solver prioritizes hitting higher reward thresholds that yield more carrots over simply maximizing raw points that might not reach a new threshold.
+where $v_{j,t}$ is a binary variable that is 1 if job $j$ achieves reward tier $t$, and $R(t)$ is the actual carrot reward for that tier. $x_{w,j}$ is 1 if worker $w$ is assigned to job $j$.
+
+This ensures the solver prioritizes hitting higher reward thresholds that yield more carrots. The tiny penalty (0.0001 per assigned pet) ensures that when multiple combinations yield the exact same reward, the solver will prefer the combination that uses the fewest pets (e.g., leaving a pet unassigned if it doesn't push the score to the next tier).
 
 ## Decision Variables
 - $x_{w,j}$: Binary variable (1 if worker $w$ is assigned to job $j$, 0 otherwise).

@@ -280,7 +280,7 @@ if st.session_state.get('calc_result'):
         
         total_display = format_reward_range(result['min_total'], result['max_total'])
         
-        m1.metric(t('TOTAL_REWARD', st.session_state.lang), f"{total_display} 🥕")
+        m1.metric(t('TOTAL_REWARD', st.session_state.lang), f"{total_display}🥕")
         m2.metric(t('TOTAL_BORROWED', st.session_state.lang), result['borrowed'])
         m3.metric(t('CALC_TIME', st.session_state.lang), f"{calc_time:.3f}s")
         
