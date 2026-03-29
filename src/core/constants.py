@@ -14,20 +14,37 @@ RARITY_BASE_MAP = {
     '传说宠物': 5
 }
 
-# 奖励等级阈值
-REWARD_LEVELS = [
-    (37, "特阶"),
-    (25, "一阶"),
-    (13, "二阶"),
-    (5, "三阶"),
-    (1, "四阶"),
-    (0, "无奖励")
-]
+# 奖励等级阈值映射 (Server -> List of (threshold, level))
+SERVER_REWARD_LEVELS = {
+    'cn': [
+        (37, "特阶"),
+        (25, "一阶"),
+        (13, "二阶"),
+        (5, "三阶"),
+        (1, "四阶"),
+        (0, "无奖励")
+    ],
+    'gl': [
+        (37, "S"),
+        (25, "A"),
+        (13, "B"),
+        (5, "C"),
+        (1, "D"),
+        (0, "N/A")
+    ],
+    'kr': [
+        (37, "S"),
+        (25, "A"),
+        (13, "B"),
+        (5, "C"),
+        (1, "D"),
+        (0, "N/A")
+    ]
+}
 
-# 约束条件
+# MILP 约束与参数
 CONSTRAINTS = {
-    'MAX_PETS_PER_TASK': 3,
-    'MAX_BORROWED_PER_TASK': 1,
-    'MAX_BORROWED_TOTAL': 3,
-    'SPECIAL_SCORE_THRESHOLD': 37
+    'M': 3,      # 每个任务最大宠物数
+    'A': 3,      # 最大总借用数
+    'TIERS': [0, 1, 5, 13, 25, 37]
 }

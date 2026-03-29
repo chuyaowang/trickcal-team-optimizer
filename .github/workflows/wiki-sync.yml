@@ -1,0 +1,23 @@
+name: Wiki Sync
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/wiki/**'
+
+jobs:
+  sync-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Sync Wiki
+        uses: SwiftDoc/wiki-sync-action@v1
+        with:
+          path: docs/wiki
+          owner: ${{ github.repository_owner }}
+          repository: ${{ github.event.repository.name }}
+          token: ${{ secrets.GITHUB_TOKEN }}

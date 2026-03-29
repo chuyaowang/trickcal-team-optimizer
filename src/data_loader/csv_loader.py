@@ -4,13 +4,14 @@ import glob
 from typing import List, Dict
 from src.core.constants import RARITY_BASE_MAP, SKILL_SCORE_MAP
 
-def get_available_job_files(data_dir: str = './data') -> List[str]:
-    """获取data目录下所有jobs_*.csv文件"""
-    pattern = os.path.join(data_dir, 'jobs_*.csv')
+def get_available_job_files(server: str = 'cn', data_dir: str = './data') -> List[str]:
+    """获取指定服务器目录下的所有jobs_*.csv文件"""
+    pattern = os.path.join(data_dir, server, 'jobs_*.csv')
     return sorted(glob.glob(pattern))
 
-def load_pets(file_path: str = './data/pets.csv') -> List[Dict]:
-    """从CSV读取宠物列表"""
+def load_pets(server: str = 'cn', data_dir: str = './data') -> List[Dict]:
+    """从指定服务器目录下读取宠物列表"""
+    file_path = os.path.join(data_dir, server, 'pets.csv')
     try:
         df = pd.read_csv(file_path)
     except FileNotFoundError:
@@ -39,8 +40,8 @@ def load_pets(file_path: str = './data/pets.csv') -> List[Dict]:
         })
     return pets
 
-def load_tasks(file_path: str = './data/jobs_1.csv') -> List[Dict]:
-    """从CSV读取任务信息"""
+def load_tasks(file_path: str) -> List[Dict]:
+    """从指定路径读取任务信息"""
     locations = []
     try:
         df = pd.read_csv(file_path)
@@ -62,10 +63,4 @@ def load_tasks(file_path: str = './data/jobs_1.csv') -> List[Dict]:
     except FileNotFoundError:
         print(f"警告：未找到{file_path}文件。")
 
-    # 填充空任务
-    while len(locations) < 5:
-        locations.append({
-            'task': '',
-            'bonus_skills': []
-        })
     return locations

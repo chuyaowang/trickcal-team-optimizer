@@ -1,275 +1,143 @@
-import itertools
+import pulp
+from collections import defaultdict
 from typing import List, Dict, Tuple
 from src.core.constants import CONSTRAINTS
-from src.core.scoring import calculate_team_score
 
-def assign_no_borrow(task_list: List[Dict], used_pet_mask: int, current_assignments: List[Dict],
-                     available_pets: List[Dict], pet_task_scores: Dict[int, Dict[str, int]],
-                     task_max_scores_no_borrow: Dict[str, int],
-                     best_score: Dict, best_assignments: List[List[Dict]], all_special_found: List[bool]):
-    """尝试不使用借用宠物的全特级方案"""
-    if all_special_found[0]:
-        return
+def calculate_best_assignment(
+    my_pets: List[Dict],
+    aux_pets_counts: Dict[str, int],
+    tasks: List[Dict],
+    pet_task_scores: Dict[Tuple[str, str], int],
+    max_active_jobs: int
+) -> Dict:
+    """
+    MILP-based assignment logic using PuLP.
+    Optimizes job selection and pet assignment to maximize tier-based rewards.
+    """
+    jobs = [t['task'] for t in tasks]
+    reg_workers = [f"{p['name']}_REG" for p in my_pets]
 
-    if not task_list:
-        total = sum([assign['score'] for assign in current_assignments])
-        borrowed = sum([1 for assign in current_assignments for pet in assign['team'] if pet.get('is_borrowed', False)])
-        total_pets = sum([len(assign['team']) for assign in current_assignments])
-        all_special = all([assign['score'] > CONSTRAINTS['SPECIAL_SCORE_THRESHOLD'] for assign in current_assignments])
+    # Generate unique IDs for duplicate borrows.
+    aux_workers = [
+        f"{name}_{i+1}_AUX" if aux_pets_counts.get(name, 0) > 1 else f"{name}_AUX"
+        for name, count in aux_pets_counts.items()
+        for i in range(count)
+    ]
 
-        if all_special:
-            all_special_found[0] = True
-            best_score['total'] = total
-            best_score['borrowed'] = borrowed
-            best_score['total_pets'] = total_pets
-            best_assignments.clear()
-            best_assignments.append([a.copy() for a in current_assignments])
-        return
+    all_workers = reg_workers + aux_workers
 
-    current_task = task_list[0]
-    if task_max_scores_no_borrow[current_task['task']] <= CONSTRAINTS['SPECIAL_SCORE_THRESHOLD']:
-        return
+    def get_base_name(worker_string):
+        # Strips the tags to find the base character (e.g., "John_1_AUX" -> "John")
+        if '_REG' in worker_string:
+            return worker_string.replace('_REG', '')
+        if '_AUX' in worker_string:
+            parts = worker_string.replace('_AUX', '').split('_')
+            # If it's like "Name_1_AUX", parts is ["Name", "1"]
+            if parts[-1].isdigit():
+                return "_".join(parts[:-1])
+            return parts[0]
+        return worker_string
 
-    available = []
-    for pet in available_pets:
-        if not pet.get('is_borrowed', False):
-            if not (used_pet_mask & (1 << (pet['id'] - 1))):
-                available.append(pet)
+    # Dictionary mapping every unique ID to its base name
+    npc_identity = {w: get_base_name(w) for w in all_workers}
 
-    current_task_max = 0
-    pet_scores = [pet_task_scores[pet['id']][current_task['task']] for pet in available]
-    pet_scores.sort(reverse=True)
-    if pet_scores:
-        current_task_max = sum(pet_scores[:min(CONSTRAINTS['MAX_PETS_PER_TASK'], len(pet_scores))])
+    # Dictionary grouping all unique IDs by their base name for the exclusivity constraint
+    workers_by_name = defaultdict(list)
+    for w in all_workers:
+        workers_by_name[npc_identity[w]].append(w)
 
-    if current_task_max <= CONSTRAINTS['SPECIAL_SCORE_THRESHOLD']:
-        return
+    # Generate the solver-ready reward matrix
+    rewards = {}
+    for w in all_workers:
+        base_name = npc_identity[w]
+        for j in jobs:
+            # Look up score in precomputed scores (precomputed uses base names)
+            rewards[(w, j)] = pet_task_scores.get((base_name, j), 0)
 
-    valid_combos = []
-    for i in range(1, CONSTRAINTS['MAX_PETS_PER_TASK'] + 1):
-        if len(available) >= i:
-            for combo in itertools.combinations(available, i):
-                score = calculate_team_score(combo, current_task, pet_task_scores)
-                if score > CONSTRAINTS['SPECIAL_SCORE_THRESHOLD']:
-                    valid_combos.append((list(combo), score, i, 0))
+    # --- PARAMETERS ---
+    m = CONSTRAINTS['M']      # Max capacity per job
+    a = CONSTRAINTS['A']      # Global borrow limit
+    p = max_active_jobs       # Job limit (user input)
+    tiers = CONSTRAINTS['TIERS']
 
-    if not valid_combos:
-        return
+    # --- INITIALIZE MILP ---
+    prob = pulp.LpProblem("Max_Reward_Job_Selection", pulp.LpMaximize)
 
-    valid_combos.sort(key=lambda x: (-x[1], x[2]))
+    # --- DECISION VARIABLES ---
+    x = pulp.LpVariable.dicts("assign", ((w, j) for w in all_workers for j in jobs), cat='Binary')
+    y = pulp.LpVariable.dicts("select_job", jobs, cat='Binary')
+    v = pulp.LpVariable.dicts("tier", ((j, t) for j in jobs for t in tiers), cat='Binary')
 
-    for combo, score, combo_size, combo_borrowed in valid_combos:
-        pet_names = [pet['name'] for pet in combo]
-        if len(set(pet_names)) != len(pet_names):
-            continue
+    # --- OBJECTIVE FUNCTION ---
+    prob += pulp.lpSum(t * v[j, t] for j in jobs for t in tiers)
 
-        combo_owned_ids = [pet['id'] for pet in combo if not pet.get('is_borrowed', False)]
-        conflict = False
-        new_used_mask = used_pet_mask
-        for pet_id in combo_owned_ids:
-            if used_pet_mask & (1 << (pet_id - 1)):
-                conflict = True
-                break
-            new_used_mask |= (1 << (pet_id - 1))
-        if conflict:
-            continue
+    # --- CONSTRAINTS ---
 
-        assign_no_borrow(task_list[1:], new_used_mask, current_assignments + [{'task': current_task, 'team': combo, 'score': score}],
-                         available_pets, pet_task_scores, task_max_scores_no_borrow,
-                         best_score, best_assignments, all_special_found)
-        if all_special_found[0]:
-            return
+    # Constraint A: Physical Reality
+    for w in all_workers:
+        prob += pulp.lpSum(x[w, j] for j in jobs) <= 1
 
-def assign_with_borrow(task_list: List[Dict], used_pet_mask: int, current_assignments: List[Dict],
-                       available_pets: List[Dict], pet_task_scores: Dict[int, Dict[str, int]],
-                       task_max_scores: Dict[str, int],
-                       best_score: Dict, best_assignments: List[List[Dict]], all_special_found: List[bool]):
-    """尝试使用借用宠物的全特级方案"""
-    if all_special_found[0]:
-        return
+    # Constraint B: Global Borrow Limit
+    prob += pulp.lpSum(x[w, j] for w in aux_workers for j in jobs) <= a
 
-    if not task_list:
-        total = sum([assign['score'] for assign in current_assignments])
-        borrowed = sum([1 for assign in current_assignments for pet in assign['team'] if pet.get('is_borrowed', False)])
-        total_pets = sum([len(assign['team']) for assign in current_assignments])
-        all_special = all([assign['score'] > CONSTRAINTS['SPECIAL_SCORE_THRESHOLD'] for assign in current_assignments])
+    # Constraint C: Maximum Active Jobs
+    prob += pulp.lpSum(y[j] for j in jobs) <= p
 
-        if all_special:
-            all_special_found[0] = True
-            best_score['total'] = total
-            best_score['borrowed'] = borrowed
-            best_score['total_pets'] = total_pets
-            best_assignments.clear()
-            best_assignments.append([a.copy() for a in current_assignments])
-        return
+    # Constraint D: The Linking & Max Capacity Constraint
+    for j in jobs:
+        prob += pulp.lpSum(x[w, j] for w in all_workers) <= m * y[j]
 
-    current_task = task_list[0]
-    if task_max_scores[current_task['task']] <= CONSTRAINTS['SPECIAL_SCORE_THRESHOLD']:
-        return
+    # Constraint E: Max 1 Friend per Team
+    for j in jobs:
+        prob += pulp.lpSum(x[w, j] for w in aux_workers) <= 1
 
-    available = []
-    for pet in available_pets:
-        if pet.get('is_borrowed', False) or not (used_pet_mask & (1 << (pet['id'] - 1))):
-            available.append(pet)
+    # Constraint F: Mutual Exclusivity (No Clones on a Team)
+    for j in jobs:
+        for name, name_group in workers_by_name.items():
+            if len(name_group) > 1:
+                prob += pulp.lpSum(x[w, j] for w in name_group) <= 1
 
-    current_task_max = 0
-    pet_scores = [pet_task_scores[pet['id']][current_task['task']] for pet in available]
-    pet_scores.sort(reverse=True)
-    if pet_scores:
-        current_task_max = sum(pet_scores[:min(CONSTRAINTS['MAX_PETS_PER_TASK'], len(pet_scores))])
+    # Constraint G: Tier Validation
+    for j in jobs:
+        # G1: "Claim One Prize"
+        prob += pulp.lpSum(v[j, t] for t in tiers) == y[j]
+        # G2: "Earn Your Prize"
+        raw_score = pulp.lpSum(rewards[w, j] * x[w, j] for w in all_workers)
+        chosen_tier_value = pulp.lpSum(t * v[j, t] for t in tiers)
+        prob += raw_score >= chosen_tier_value
 
-    if current_task_max <= CONSTRAINTS['SPECIAL_SCORE_THRESHOLD']:
-        return
+    # --- SOLVE ---
+    prob.solve(pulp.PULP_CBC_CMD(msg=0))
 
-    valid_combos = []
-    for i in range(1, CONSTRAINTS['MAX_PETS_PER_TASK'] + 1):
-        if len(available) >= i:
-            for combo in itertools.combinations(available, i):
-                score = calculate_team_score(combo, current_task, pet_task_scores)
-                if score > CONSTRAINTS['SPECIAL_SCORE_THRESHOLD']:
-                    borrowed = sum(1 for pet in combo if pet.get('is_borrowed', False))
-                    if borrowed <= CONSTRAINTS['MAX_BORROWED_PER_TASK']:
-                        valid_combos.append((list(combo), score, i, borrowed))
+    if pulp.LpStatus[prob.status] != 'Optimal':
+        return {'total': 0, 'assignments': [], 'status': pulp.LpStatus[prob.status]}
 
-    if not valid_combos:
-        return
+    # --- PARSE RESULTS ---
+    assignments = []
+    for j in jobs:
+        if pulp.value(y[j]) == 1:
+            team = []
+            job_score = 0
+            for w in all_workers:
+                if pulp.value(x[w, j]) == 1:
+                    base_name = npc_identity[w]
+                    team.append({
+                        'name': base_name,
+                        'is_borrowed': '_AUX' in w
+                    })
+                    job_score += rewards[(w, j)]
+            
+            task_obj = next(t for t in tasks if t['task'] == j)
+            assignments.append({
+                'task': task_obj,
+                'team': team,
+                'score': job_score
+            })
 
-    valid_combos.sort(key=lambda x: (-x[1], x[3], x[2]))
-
-    current_borrowed_total = sum(1 for assign in current_assignments for pet in assign['team'] if pet.get('is_borrowed', False))
-
-    for combo, score, combo_size, combo_borrowed in valid_combos:
-        if current_borrowed_total + combo_borrowed > CONSTRAINTS['MAX_BORROWED_TOTAL']:
-            continue
-
-        pet_names = [pet['name'] for pet in combo]
-        if len(set(pet_names)) != len(pet_names):
-            continue
-
-        combo_owned_ids = [pet['id'] for pet in combo if not pet.get('is_borrowed', False)]
-        conflict = False
-        new_used_mask = used_pet_mask
-        for pet_id in combo_owned_ids:
-            if used_pet_mask & (1 << (pet_id - 1)):
-                conflict = True
-                break
-            new_used_mask |= (1 << (pet_id - 1))
-        if conflict:
-            continue
-
-        assign_with_borrow(task_list[1:], new_used_mask, current_assignments + [{'task': current_task, 'team': combo, 'score': score}],
-                           available_pets, pet_task_scores, task_max_scores,
-                           best_score, best_assignments, all_special_found)
-        if all_special_found[0]:
-            return
-
-def assign_normal(task_list: List[Dict], used_pet_mask: int, current_assignments: List[Dict],
-                  available_pets: List[Dict], pet_task_scores: Dict[int, Dict[str, int]],
-                  best_score: Dict, best_assignments: List[List[Dict]]):
-    """普通最优方案寻找"""
-    if not task_list:
-        total = sum([assign['score'] for assign in current_assignments])
-        borrowed = sum([1 for assign in current_assignments for pet in assign['team'] if pet.get('is_borrowed', False)])
-        total_pets = sum([len(assign['team']) for assign in current_assignments])
-
-        if total > best_score['total']:
-            best_score.update({'total': total, 'borrowed': borrowed, 'total_pets': total_pets})
-            best_assignments.clear()
-            best_assignments.append([a.copy() for a in current_assignments])
-        elif total == best_score['total']:
-            if borrowed < best_score['borrowed']:
-                best_score.update({'borrowed': borrowed, 'total_pets': total_pets})
-                best_assignments.clear()
-                best_assignments.append([a.copy() for a in current_assignments])
-            elif borrowed == best_score['borrowed']:
-                if total_pets < best_score['total_pets']:
-                    best_score['total_pets'] = total_pets
-                    best_assignments.clear()
-                    best_assignments.append([a.copy() for a in current_assignments])
-                elif total_pets == best_score['total_pets']:
-                    best_assignments.append([a.copy() for a in current_assignments])
-        return
-
-    available = [pet for pet in available_pets if pet.get('is_borrowed', False) or not (used_pet_mask & (1 << (pet['id'] - 1)))]
-    
-    current_total = sum([assign['score'] for assign in current_assignments])
-    remaining_max = 0
-    for task in task_list:
-        pet_scores = sorted([pet_task_scores[pet['id']][task['task']] for pet in available], reverse=True)
-        remaining_max += sum(pet_scores[:CONSTRAINTS['MAX_PETS_PER_TASK']]) if pet_scores else 0
-
-    if best_score['total'] != -1 and current_total + remaining_max <= best_score['total']:
-        return
-
-    current_task = task_list[0]
-    
-    max_two_score = 0
-    if len(available) >= 2:
-        for combo in itertools.combinations(available, 2):
-            score = calculate_team_score(combo, current_task, pet_task_scores)
-            if score > max_two_score:
-                max_two_score = score
-
-    for i in range(1, CONSTRAINTS['MAX_PETS_PER_TASK'] + 1):
-        if i == CONSTRAINTS['MAX_PETS_PER_TASK'] and max_two_score > CONSTRAINTS['SPECIAL_SCORE_THRESHOLD']:
-            continue
-        if len(available) < i:
-            continue
-
-        for combo in itertools.combinations(available, i):
-            combo_borrowed = sum(1 for pet in combo if pet.get('is_borrowed', False))
-            if combo_borrowed > CONSTRAINTS['MAX_BORROWED_PER_TASK']:
-                continue
-
-            pet_names = [pet['name'] for pet in combo]
-            if len(set(pet_names)) != len(pet_names):
-                continue
-
-            current_borrowed = sum(1 for assign in current_assignments for pet in assign['team'] if pet.get('is_borrowed', False))
-            if current_borrowed + combo_borrowed > CONSTRAINTS['MAX_BORROWED_TOTAL']:
-                continue
-
-            combo_owned_ids = [pet['id'] for pet in combo if not pet.get('is_borrowed', False)]
-            conflict = False
-            new_used_mask = used_pet_mask
-            for pet_id in combo_owned_ids:
-                if used_pet_mask & (1 << (pet_id - 1)):
-                    conflict = True
-                    break
-                new_used_mask |= (1 << (pet_id - 1))
-            if conflict:
-                continue
-
-            score = calculate_team_score(combo, current_task, pet_task_scores)
-            assign_normal(task_list[1:], new_used_mask, current_assignments + [{'task': current_task, 'team': list(combo), 'score': score}],
-                          available_pets, pet_task_scores, best_score, best_assignments)
-
-def calculate_best_assignment(task_combination: Tuple[Dict], available_pets: List[Dict], pet_task_scores: Dict[int, Dict[str, int]]) -> Tuple[Dict, List[List[Dict]], bool]:
-    """计算给定任务组合的最佳宠物分配"""
-    best_score = {'total': -1, 'borrowed': float('inf'), 'total_pets': float('inf')}
-    best_assignments = []
-    all_special_found = [False]
-
-    def calculate_task_max_score(task, use_borrowed=True):
-        pet_scores = sorted([pet_task_scores[pet['id']][task['task']] for pet in available_pets if use_borrowed or not pet.get('is_borrowed', False)], reverse=True)
-        return sum(pet_scores[:CONSTRAINTS['MAX_PETS_PER_TASK']]) if pet_scores else 0
-
-    task_max_scores = {task['task']: calculate_task_max_score(task) for task in task_combination}
-    task_max_scores_no_borrow = {task['task']: calculate_task_max_score(task, use_borrowed=False) for task in task_combination}
-
-    assign_no_borrow(list(task_combination), 0, [], available_pets, pet_task_scores, task_max_scores_no_borrow, best_score, best_assignments, all_special_found)
-
-    if not all_special_found[0]:
-        assign_with_borrow(list(task_combination), 0, [], available_pets, pet_task_scores, task_max_scores, best_score, best_assignments, all_special_found)
-
-    if not all_special_found[0]:
-        assign_normal(list(task_combination), 0, [], available_pets, pet_task_scores, best_score, best_assignments)
-
-    return best_score, best_assignments, all_special_found[0]
-
-def generate_task_combinations(tasks: List[Dict], task_count: int) -> List[Tuple[Dict]]:
-    """生成指定数量的任务组合，优先选择加成技能多的任务"""
-    valid_tasks = sorted([task for task in tasks if task['task']], key=lambda x: len(x['bonus_skills']), reverse=True)
-    if len(valid_tasks) >= task_count:
-        return list(itertools.combinations(valid_tasks, task_count))
-    return []
+    return {
+        'total': int(pulp.value(prob.objective)),
+        'borrowed': int(sum(pulp.value(x[w, j]) for w in aux_workers for j in jobs)),
+        'total_pets': int(sum(pulp.value(x[w, j]) for w in all_workers for j in jobs)),
+        'assignments': assignments,
+        'status': 'Optimal'
+    }
