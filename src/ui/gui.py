@@ -6,7 +6,7 @@ from typing import List, Dict
 
 from src.data_loader.csv_loader import load_pets, load_tasks, get_available_job_files
 from src.core.constants import SKILL_SCORE_MAP
-from src.core.scoring import precompute_pet_task_scores, get_reward_level
+from src.core.scoring import precompute_pet_task_scores, get_reward_level, get_carrot_reward, format_reward_range
 from src.core.assignment import calculate_best_assignment
 
 class DispatchCalculatorGUI:
@@ -210,8 +210,10 @@ class DispatchCalculatorGUI:
             self.result_text.insert(tk.END, f"\n未找到最优解。状态: {result.get('status')}\n")
             return
 
+        total_str = format_reward_range(result['min_total'], result['max_total'])
+
         self.result_text.insert(tk.END, f"\n✅ 计算完成！总耗时：{calc_time:.2f} 秒\n")
-        self.result_text.insert(tk.END, f"总计奖励分：{result['total']}\n")
+        self.result_text.insert(tk.END, f"总计奖励：{total_str} 胡萝卜\n")
         self.result_text.insert(tk.END, f"借用宠物总数：{result['borrowed']} | 使用宠物总数：{result['total_pets']}\n")
         self.result_text.insert(tk.END, "-"*50 + "\n")
 
@@ -220,13 +222,14 @@ class DispatchCalculatorGUI:
             team = assign['team']
             score = assign['score']
             reward_level = get_reward_level(score, self.server)
+            carrot_reward = get_carrot_reward(score)
             
             self.result_text.insert(tk.END, f"任务 {i}: {task['task']}\n")
             self.result_text.insert(tk.END, f"  加成特性: {', '.join(task['bonus_skills'])}\n")
             
             pet_names = [f"{p['name']}{' (借)' if p.get('is_borrowed', False) else ''}" for p in team]
             self.result_text.insert(tk.END, f"  派遣宠物: {', '.join(pet_names)}\n")
-            self.result_text.insert(tk.END, f"  得分: {score} -> 奖励等级: {reward_level}\n\n")
+            self.result_text.insert(tk.END, f"  得分: {score} -> 奖励: {reward_level} ({carrot_reward} 胡萝卜)\n\n")
 
 def run_gui():
     root = tk.Tk()

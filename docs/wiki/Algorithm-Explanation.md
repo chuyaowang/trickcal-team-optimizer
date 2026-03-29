@@ -3,11 +3,12 @@
 This project uses **Mixed Integer Linear Programming (MILP)** to solve the pet dispatch assignment problem. Unlike traditional recursive search, MILP can find the global optimal solution across multiple tasks simultaneously while respecting complex constraints.
 
 ## Core Objective
-The goal is to maximize the **Total Tier Rewards** across all selected jobs. 
 
-$$ \text{Maximize } \sum_{j \in Jobs} \sum_{t \in Tiers} t \cdot v_{j,t} $$
+The goal is to maximize the **Total Rewards** (carrots) across all selected jobs. 
 
-where $v_{j,t}$ is a binary variable that is 1 if job $j$ achieves reward tier $t$. This ensures the solver prioritizes hitting higher reward thresholds (e.g., 37 points for 'Special' tier) over simply maximizing raw points that might not reach a new threshold.
+$$ \text{Maximize } \sum_{j \in Jobs} \sum_{t \in Tiers} R(t) \cdot v_{j,t} $$
+
+where $v_{j,t}$ is a binary variable that is 1 if job $j$ achieves reward tier $t$, and $R(t)$ is the actual carrot reward for that tier. This ensures the solver prioritizes hitting higher reward thresholds that yield more carrots over simply maximizing raw points that might not reach a new threshold.
 
 ## Decision Variables
 - $x_{w,j}$: Binary variable (1 if worker $w$ is assigned to job $j$, 0 otherwise).

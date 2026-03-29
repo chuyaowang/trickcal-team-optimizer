@@ -70,3 +70,15 @@ CONSTRAINTS = {
     'A': 3,      # 最大总借用数
     'TIERS': [0, 1, 5, 13, 25, 37]
 }
+
+# Tier reward mapping
+TIER_REWARD_MAP = {
+    # Assuming max dispatch time (22 hours) and all servers share the same mapping
+    # Maps Tier threshold: Reward
+    0: 0,   # N/A
+    1: 5,   # D
+    5: 7.5, # C
+    13: 9,  # B
+    25: 11, # A
+    37: 13  # S
+}

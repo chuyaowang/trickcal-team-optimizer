@@ -12,7 +12,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from src.data_loader.csv_loader import load_pets, load_tasks, get_available_job_files
-from src.core.scoring import precompute_pet_task_scores, get_reward_level
+from src.core.scoring import precompute_pet_task_scores, get_reward_level, get_carrot_reward, format_reward_range
 from src.core.assignment import calculate_best_assignment
 from src.core.i18n import t
 
@@ -43,6 +43,10 @@ if 'msg_success' not in st.session_state:
 if 'msg_error' not in st.session_state:
     st.session_state.msg_error = None
 
+def clear_results():
+    """Clears the cached calculation result when any input parameter changes."""
+    st.session_state.calc_result = None
+
 # --- CONFIG UPLOAD CALLBACK (The Streamlit-Native Fix for Reversal Bug) ---
 def on_config_upload():
     """Processes config file only when a new file is uploaded."""
@@ -60,6 +64,7 @@ def on_config_upload():
             for pet_name, count in config.get('aux_pets_counts', {}).items():
                 st.session_state[f"num_{pet_name}"] = count
             st.session_state.msg_success = True
+            clear_results()
         except Exception as e:
             st.session_state.msg_error = str(e)
 
@@ -96,7 +101,8 @@ with st.sidebar:
         t('SELECT_SERVER', st.session_state.lang), 
         options=server_list, 
         format_func=lambda x: server_names[x],
-        key='server'
+        key='server',
+        on_change=clear_results
     )
     
     # 2. Job File Selection
@@ -107,7 +113,8 @@ with st.sidebar:
             options=job_files, 
             format_func=lambda x: os.path.basename(x),
             index=len(job_files) - 1,
-            key=f"job_select_{st.session_state.server}"
+            key=f"job_select_{st.session_state.server}",
+            on_change=clear_results
         )
     else:
         st.error(t('TASK_FILE_NOT_FOUND', st.session_state.lang).format(st.session_state.server))
@@ -119,7 +126,8 @@ with st.sidebar:
         min_value=2, 
         max_value=5, 
         step=1,
-        key='p_limit'
+        key='p_limit',
+        on_change=clear_results
     )
     
     st.divider()
@@ -129,7 +137,7 @@ with st.sidebar:
     if st.session_state.lang == 'cn':
         st.info("💡 可跳过：上传之前保存的 .json 配置文件（按键在底部），可快速恢复设置。")
     else:
-        st.info("💡 Optional: Upload a previously saved .json config to instantly restore settings.")
+        st.info("💡 Optional: Upload a previously saved (button below) .json config to instantly restore settings.")
 
     # Load Config (Using callback to fix reversal bug)
     st.file_uploader(
@@ -212,7 +220,7 @@ with col_owned:
         for i, pet in enumerate(filtered_owned):
             name = pet['name']
             with o_cols[i % 2]:
-                st.checkbox(f"{name}", key=f"chk_{name}")
+                st.checkbox(f"{name}", key=f"chk_{name}", on_change=clear_results)
 
 with col_aux:
     st.subheader(t('BORROW_PETS', st.session_state.lang))
@@ -228,7 +236,7 @@ with col_aux:
         for i, pet in enumerate(filtered_aux):
             name = pet['name']
             with cols[i % 3]:
-                st.number_input(f"{name}", min_value=0, max_value=20, step=1, key=f"num_{name}")
+                st.number_input(f"{name}", min_value=0, max_value=20, step=1, key=f"num_{name}", on_change=clear_results)
 
 st.divider()
 run_calc = st.button(t('RUN_OPTIMIZER', st.session_state.lang), use_container_width=True, type="primary")
@@ -239,8 +247,8 @@ if run_calc:
     
     if not owned_pet_names:
         st.warning(t('SELECT_OWNED_WARNING', st.session_state.lang))
+        st.session_state.calc_result = None
     else:
-        st.header(t('RESULTS', st.session_state.lang))
         owned_pet_objs = [p for p in all_pets if p['name'] in owned_pet_names]
         
         with st.spinner(t('STATUS', st.session_state.lang) + "..."):
@@ -254,36 +262,49 @@ if run_calc:
                 max_active_jobs=st.session_state.p_limit
             )
             calc_time = time.time() - start_time
+            st.session_state.calc_result = result
+            st.session_state.calc_time = calc_time
+    
+    if result:
+        st.balloons()
+
+if st.session_state.get('calc_result'):
+    result = st.session_state.calc_result
+    calc_time = st.session_state.calc_time
+    
+    st.header(t('RESULTS', st.session_state.lang))
+    if result.get('status') != 'Optimal':
+        st.error(t('NO_OPTIMAL', st.session_state.lang).format(result.get('status')))
+    else:
+        m1, m2, m3 = st.columns(3)
+        
+        total_display = format_reward_range(result['min_total'], result['max_total'])
+        
+        m1.metric(t('TOTAL_REWARD', st.session_state.lang), f"{total_display} 🥕")
+        m2.metric(t('TOTAL_BORROWED', st.session_state.lang), result['borrowed'])
+        m3.metric(t('CALC_TIME', st.session_state.lang), f"{calc_time:.3f}s")
+        
+        for i, assign in enumerate(result['assignments'], 1):
+            task = assign['task']
+            team = assign['team']
+            score = assign['score']
+            reward_level = get_reward_level(score, st.session_state.server)
+            carrot_reward = get_carrot_reward(score)
             
-            if result.get('status') != 'Optimal':
-                st.error(t('NO_OPTIMAL', st.session_state.lang).format(result.get('status')))
-            else:
-                st.balloons()
-                m1, m2, m3 = st.columns(3)
-                m1.metric(t('TOTAL_REWARD', st.session_state.lang), result['total'])
-                m2.metric(t('TOTAL_BORROWED', st.session_state.lang), result['borrowed'])
-                m3.metric(t('CALC_TIME', st.session_state.lang), f"{calc_time:.3f}")
-                
-                for i, assign in enumerate(result['assignments'], 1):
-                    task = assign['task']
-                    team = assign['team']
-                    score = assign['score']
-                    reward_level = get_reward_level(score, st.session_state.server)
-                    
-                    bg_color = RANK_COLORS.get(reward_level, "#F0F2F6")
-                    borrow_tag = " (借)" if st.session_state.lang == 'cn' else " (Borrow)"
-                    pet_list_str = ", ".join([f"{p['name']}{borrow_tag if p['is_borrowed'] else ''}" for p in team])
-                    
-                    st.markdown(f"""
-                        <div style="background-color: {bg_color}; padding: 8px 12px; border-radius: 8px; border: 1px solid #ddd; color: black; margin-bottom: 10px;">
-                            <div style="font-size: 1.0em; font-weight: bold; color: #333;">{t('STATUS', st.session_state.lang)} {i}: {task['task']}</div>
-                            <div style="font-size: 1.1em; font-weight: bold; margin: 4px 0;">{reward_level} ({score} pts)</div>
-                            <hr style="margin: 6px 0; border: 0; border-top: 1px solid rgba(0,0,0,0.1);">
-                            <div style="display: flex; flex-wrap: wrap; gap: 15px; font-size: 0.95em;">
-                                <div><strong>{t('DISPATCH_TEAM', st.session_state.lang)}:</strong> {pet_list_str}</div>
-                                <div><strong>{t('BONUS_TRAITS', st.session_state.lang)}:</strong> {', '.join(task['bonus_skills'])}</div>
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
-else:
+            bg_color = RANK_COLORS.get(reward_level, "#F0F2F6")
+            borrow_tag = " (借)" if st.session_state.lang == 'cn' else " (Borrow)"
+            pet_list_str = ", ".join([f"{p['name']}{borrow_tag if p['is_borrowed'] else ''}" for p in team])
+            
+            st.markdown(f"""
+                <div style="background-color: {bg_color}; padding: 8px 12px; border-radius: 8px; border: 1px solid #ddd; color: black; margin-bottom: 10px;">
+                    <div style="font-size: 1.0em; font-weight: bold; color: #333;">{t('STATUS', st.session_state.lang)} {i}: {task['task']}</div>
+                    <div style="font-size: 1.1em; font-weight: bold; margin: 4px 0;">{reward_level} ({score} pts) -> {carrot_reward} 🥕</div>
+                    <hr style="margin: 6px 0; border: 0; border-top: 1px solid rgba(0,0,0,0.1);">
+                    <div style="display: flex; flex-wrap: wrap; gap: 15px; font-size: 0.95em;">
+                        <div><strong>{t('DISPATCH_TEAM', st.session_state.lang)}:</strong> {pet_list_str}</div>
+                        <div><strong>{t('BONUS_TRAITS', st.session_state.lang)}:</strong> {', '.join(task['bonus_skills'])}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+elif not run_calc:
     st.info(t('INFO_TEXT', st.session_state.lang))

@@ -27,7 +27,7 @@ Handles loading pet traits and job requirements from server-specific subdirector
 
 ### 2. Core Logic (`src/core/`)
 - **Scoring**: Precomputes a reward matrix mapping pets to potential jobs based on traits and rarity.
-- **Assignment**: The "brain" of the application. It builds a mathematical model using **Mixed Integer Linear Programming (MILP)** and solves it for the global optimum using the `PuLP` library.
+- **Assignment**: The "brain" of the application. It builds a mathematical model using **Mixed Integer Linear Programming (MILP)** to maximize the total quantity of rewards (carrots) and solves it for the global optimum using the `PuLP` library.
 
 ### 3. UI Layer (`src/ui/`)
 - **Web GUI (`web_gui.py`)**: The primary interface. Built with Streamlit, it provides the most robust rendering for Chinese characters and features configuration save/load support.
@@ -38,4 +38,4 @@ Handles loading pet traits and job requirements from server-specific subdirector
 The application dynamically switches its context based on the selected server (CN, GL, or KR). This affects:
 - The data paths (e.g., `data/gl/`).
 - The character encoding (Simplified vs. Traditional Chinese).
-- The reward tier labels and thresholds used in result reporting.
+- The reward tier labels and label-threshold mappings used in result reporting and optimization.

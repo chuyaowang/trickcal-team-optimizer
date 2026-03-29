@@ -1,5 +1,5 @@
 from typing import List, Dict, Tuple
-from src.core.constants import SERVER_REWARD_LEVELS
+from src.core.constants import SERVER_REWARD_LEVELS, TIER_REWARD_MAP
 
 def calculate_pet_score_for_task(pet: Dict, task: Dict) -> int:
     """计算单个宠物在特定任务下的得分"""
@@ -29,3 +29,23 @@ def get_reward_level(score: int, server: str = 'cn') -> str:
         if score >= threshold:
             return level
     return levels[-1][1]
+
+def get_reward_range(score: int) -> Tuple[int, int]:
+    """获取得分对应的奖励范围 (min, max)"""
+    if score >= 37: return (13, 13)
+    if score >= 25: return (11, 11)
+    if score >= 13: return (9, 9)
+    if score >= 5: return (7, 8)
+    if score >= 1: return (5, 5)
+    return (0, 0)
+
+def format_reward_range(lower: int, upper: int) -> str:
+    """格式化奖励范围为字符串"""
+    if lower == upper:
+        return str(lower)
+    return f"{lower}-{upper}"
+
+def get_carrot_reward(score: int) -> str:
+    """根据得分获取对应的胡萝卜奖励显示字符串"""
+    low, high = get_reward_range(score)
+    return format_reward_range(low, high)

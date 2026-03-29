@@ -1,6 +1,6 @@
 from typing import List, Dict
 import os
-from src.core.scoring import get_reward_level
+from src.core.scoring import get_reward_level, get_carrot_reward, format_reward_range
 from src.core.i18n import t
 
 def select_server(lang='cn') -> str:
@@ -123,7 +123,8 @@ def display_results(result: Dict, server: str, lang='cn', calc_time: float = 0.0
         print(t('NO_OPTIMAL', lang).format(result.get('status')))
         return
 
-    print(f"{t('TOTAL_REWARD', lang)}: {result['total']}")
+    total_str = format_reward_range(result['min_total'], result['max_total'])
+    print(f"{t('TOTAL_REWARD', lang)}: {total_str} 🥕")
     print(f"{t('TOTAL_BORROWED', lang)}: {result['borrowed']}")
 
     for i, assign in enumerate(result['assignments'], 1):
@@ -131,10 +132,11 @@ def display_results(result: Dict, server: str, lang='cn', calc_time: float = 0.0
         team = assign['team']
         score = assign['score']
         reward_level = get_reward_level(score, server)
+        carrot_reward = get_carrot_reward(score)
         print(f"\n--- {t('STATUS', lang)} {i} ---")
         print(f"{t('TASK_NAME', lang)}: {task['task']}")
         
         borrow_tag = " (借)" if lang == 'cn' else " (Borrow)"
         pet_names = [f"{pet['name']}{borrow_tag if pet.get('is_borrowed', False) else ''}" for pet in team]
         print(f"{t('DISPATCH_TEAM', lang)}: {', '.join(pet_names)}")
-        print(f"{t('RAW_SCORE', lang)}: {score} -> {reward_level}")
+        print(f"{t('RAW_SCORE', lang)}: {score} -> {reward_level} ({carrot_reward} 🥕)")

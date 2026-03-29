@@ -1,7 +1,8 @@
 import pulp
 from collections import defaultdict
 from typing import List, Dict, Tuple
-from src.core.constants import CONSTRAINTS
+from src.core.constants import CONSTRAINTS, TIER_REWARD_MAP
+from src.core.scoring import get_reward_range
 
 def calculate_best_assignment(
     my_pets: List[Dict],
@@ -59,6 +60,7 @@ def calculate_best_assignment(
     a = CONSTRAINTS['A']      # Global borrow limit
     p = max_active_jobs       # Job limit (user input)
     tiers = CONSTRAINTS['TIERS']
+    tier_reward_map = TIER_REWARD_MAP
 
     # --- INITIALIZE MILP ---
     prob = pulp.LpProblem("Max_Reward_Job_Selection", pulp.LpMaximize)
@@ -69,7 +71,7 @@ def calculate_best_assignment(
     v = pulp.LpVariable.dicts("tier", ((j, t) for j in jobs for t in tiers), cat='Binary')
 
     # --- OBJECTIVE FUNCTION ---
-    prob += pulp.lpSum(t * v[j, t] for j in jobs for t in tiers)
+    prob += pulp.lpSum(tier_reward_map[t] * v[j, t] for j in jobs for t in tiers)
 
     # --- CONSTRAINTS ---
 
@@ -110,10 +112,12 @@ def calculate_best_assignment(
     prob.solve(pulp.PULP_CBC_CMD(msg=0))
 
     if pulp.LpStatus[prob.status] != 'Optimal':
-        return {'total': 0, 'assignments': [], 'status': pulp.LpStatus[prob.status]}
+        return {'total': 0, 'min_total': 0, 'max_total': 0, 'assignments': [], 'status': pulp.LpStatus[prob.status]}
 
     # --- PARSE RESULTS ---
     assignments = []
+    min_total = 0
+    max_total = 0
     for j in jobs:
         if pulp.value(y[j]) == 1:
             team = []
@@ -127,6 +131,10 @@ def calculate_best_assignment(
                     })
                     job_score += rewards[(w, j)]
             
+            l, h = get_reward_range(job_score)
+            min_total += l
+            max_total += h
+            
             task_obj = next(t for t in tasks if t['task'] == j)
             assignments.append({
                 'task': task_obj,
@@ -135,7 +143,9 @@ def calculate_best_assignment(
             })
 
     return {
-        'total': int(pulp.value(prob.objective)),
+        'total': float(pulp.value(prob.objective)),
+        'min_total': min_total,
+        'max_total': max_total,
         'borrowed': int(sum(pulp.value(x[w, j]) for w in aux_workers for j in jobs)),
         'total_pets': int(sum(pulp.value(x[w, j]) for w in all_workers for j in jobs)),
         'assignments': assignments,
