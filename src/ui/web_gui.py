@@ -58,6 +58,12 @@ with st.sidebar:
     st.divider()
     st.header(t('CONFIG_MGMT', st.session_state.lang))
     
+    # Brief explanation
+    if st.session_state.lang == 'cn':
+        st.info("💡 可跳过：上传之前保存的 .json 配置文件（按键在底部），可快速恢复您的宠物勾选和数量设置。")
+    else:
+        st.info("💡 Optional: Upload a previously saved (button below) .json config to instantly restore your pets and counts.")
+
     # 1. Read Config
     uploaded_file = st.file_uploader(t('LOAD_CONFIG', st.session_state.lang), type=["json"])
     if uploaded_file is not None:
