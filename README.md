@@ -17,7 +17,7 @@
 
 ## English
 
-**ddl-PetDispatch** is a globally optimal pet assignment calculator for farm dispatch tasks. It uses Mixed Integer Linear Programming (MILP) to find the best possible pet teams to maximize your reward tiers.
+**ddl-PetDispatch** is a globally optimal pet assignment calculator for farm dispatch tasks in the game Trickcal: Chibi Go. It uses Mixed Integer Linear Programming (MILP) to find the best possible pet teams to maximize your reward tiers.
 
 ### 🚀 Quick Start (One-Liner)
 If you have **Miniconda** or **Anaconda** installed, run this in your terminal inside the project folder:
@@ -53,7 +53,7 @@ python main.py --config your_config.json --lang en
 
 ## 中文
 
-**ddl-PetDispatch** 是一款针对农场派遣任务的全局最优宠物分配计算器。它利用混合整数线性规划 (MILP) 算法，自动寻找能够最大化奖励等级的宠物组合方案。
+**ddl-PetDispatch** 是一款针对嘟嘟脸恶作剧农场派遣任务的全局最优宠物分配计算器。它利用混合整数线性规划 (MILP) 算法，自动寻找能够最大化奖励等级的宠物组合方案。
 
 ### 🚀 快速安装 (一键指令)
 如果您已安装 **Miniconda** 或 **Anaconda**，请在项目文件夹内运行：
