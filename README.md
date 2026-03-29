@@ -3,11 +3,17 @@
 [English](#english) | [中文](#中文)
 
 ---
-## Please Note
+## Please Note: Help Needed!
 
-⚠️ The pets and dispatch missions data may need to be updated for the CN server and definitely needs to be updated for the KR server. Currently the KR server uses the same data as the global server for testing only. If you are willing to update, please refer to [Contribution / 贡献指南](docs/wiki/Contribution-Guide.md) first!
+⚠️ **Help is needed to update the pets and dispatch missions data for the calculator!**
+⚠️ **宠物和任务信息需要帮助更新！**
 
-⚠️ 中国服的宠物和任务信息可能需要更新。韩服的信息一定需要更新。目前的韩服数据和国际服相同，仅做测试用。如果你可以更新数据，请先参考[Contribution / 贡献指南](docs/wiki/Contribution-Guide-CN.md)!
+📢 Current Status:
+
+- \[GL-CN\] 国际服(宠物，任务数据已更新
+- 
+- \[EN\] The pets and dispatch missions data may need to be updated for the CN server and definitely needs to be updated for the KR server. Currently the KR server uses the same data as the global server for testing only. If you are willing to update, please refer to [Contribution / 贡献指南](docs/wiki/Contribution-Guide.md) first!
+- \[CN\] 中国服的宠物和任务信息可能需要更新。韩服的信息一定需要更新。目前的韩服数据和国际服相同，仅做测试用。如果你可以更新数据，请先参考[Contribution / 贡献指南](docs/wiki/Contribution-Guide-CN.md)!
 
 
 ## English
