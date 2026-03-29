@@ -5,8 +5,9 @@ Help keep the **ddl-PetDispatch** data up to date! This guide explains how to up
 ## Data Structure
 Data is organized by server in the `data/` directory:
 - `data/cn/`: China Server (Simplified Chinese)
-- `data/gl/`: Global Server (Traditional Chinese)
-- `data/kr/`: Korea Server (Traditional Chinese / English)
+- `data/gl-cn/`: Global Server (Traditional Chinese)
+- `data/gl-en/`: Global Server (English)
+- `data/kr/`: Korea Server (Traditional Chinese / English) **TESTING DATA ONLY**
 
 ## 1. Updating Pets (`pets.csv`)
 Each server subdirectory has its own `pets.csv`. Use this file to add new pets as they are released in that specific server.
