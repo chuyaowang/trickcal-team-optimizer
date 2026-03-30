@@ -32,7 +32,7 @@ def get_reward_level(score: int, server: str = 'cn') -> str:
 
 def get_reward_range(score: int) -> Tuple[int, int]:
     """获取得分对应的奖励范围 (min, max)"""
-    if score >= 37: return (13, 13)
+    if score >= 37: return (14, 14)
     if score >= 25: return (11, 11)
     if score >= 13: return (9, 9)
     if score >= 5: return (7, 8)
