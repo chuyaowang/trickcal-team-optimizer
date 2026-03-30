@@ -54,6 +54,14 @@ def on_config_upload():
     if uploaded_file is not None:
         try:
             config = json.load(uploaded_file)
+            
+            # Reset existing pet selections to prevent "merging" configs
+            for key in list(st.session_state.keys()):
+                if key.startswith("chk_"):
+                    st.session_state[key] = False
+                elif key.startswith("num_"):
+                    st.session_state[key] = 0
+
             # Safe to update these because the widgets haven't rendered yet in this run
             st.session_state.server = config.get('server', st.session_state.server)
             st.session_state.p_limit = config.get('max_job_number', st.session_state.p_limit)
