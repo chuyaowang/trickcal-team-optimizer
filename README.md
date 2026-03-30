@@ -1,8 +1,16 @@
-# 🐾 Trickcal: Chibi Go Farm Dispatch Calculator | 嘟嘟脸恶作剧农场派遣计算器
+# 🐾 Trickcal: Chibi Go Farm Dispatch Calculator <br> 嘟嘟脸恶作剧农场派遣计算器
 
 ![App snapshot](app.png)
 
 [English](#english) | [中文](#中文)
+
+---
+
+## Online App / 在线应用
+
+Click [here](https://trickcalpetdispatch.streamlit.app/) to use the online streamlit app.
+
+点击[此处](https://trickcalpetdispatch.streamlit.app/)使用在线的streamlit应用。
 
 ---
 
@@ -20,14 +28,11 @@
 - \[KR\]: 需要更新。目前的韩服数据和国际服相同，仅做测试用。如果你可以更新数据，请先参考[贡献指南](https://github.com/chuyaowang/ddl-PetDispatch/wiki/Contribution-Guide-CN)!
   - Translation: Currently the KR server uses the same data as the global server for testing only. If you are able to update, please refer to the [Contribution Guide](https://github.com/chuyaowang/ddl-PetDispatch/wiki/Contribution-Guide) first!
 
-## Online App / 在线使用
-
-Click [here](https://trickcalpetdispatch.streamlit.app/) to use the online streamlit app.
-点击[此处](https://trickcalpetdispatch.streamlit.app/)使用在线的streamlit应用。
+---
 
 ## English
 
-**ddl-PetDispatch** is a globally optimal pet assignment calculator for farm dispatch tasks in the game Trickcal: Chibi Go. It uses Mixed Integer Linear Programming (MILP) to find the best possible pet teams to maximize your reward tiers.
+**ddl-PetDispatch** is a globally optimal pet assignment calculator for farm dispatch tasks in the game Trickcal: Chibi Go. It uses Mixed Integer Linear Programming (MILP) to find the best possible pet teams to maximize your total 🥕 rewards.
 
 ### 🚀 Quick Start
 
@@ -47,7 +52,7 @@ Run the modern web-based UI with **Multi-language support**:
 streamlit run src/ui/web_gui.py
 ```
 
-* **UI Language**: Toggle between English and Chinese in the sidebar.
+- **UI Language**: Toggle between English and Chinese in the sidebar.
 - **Save/Load Configs**: Download your setup as a `.json` file and reload it instantly later.
 - **Results**: View optimized teams directly on the same page.
 
@@ -71,7 +76,7 @@ python main.py --config your_config.json --lang en
 
 ## 中文
 
-**ddl-PetDispatch** 是一款针对嘟嘟脸恶作剧农场派遣任务的全局最优宠物分配计算器。它利用混合整数线性规划 (MILP) 算法，自动寻找能够最大化奖励等级的宠物组合方案。
+**ddl-PetDispatch** 是一款针对嘟嘟脸恶作剧农场派遣任务的全局最优宠物分配计算器。它利用混合整数线性规划 (MILP) 算法，自动寻找能够最大化胡萝卜奖励的宠物组合方案。
 
 ### 🚀 快速安装
 
@@ -91,7 +96,7 @@ conda create -n petdispatch python=3.9 -y && conda activate petdispatch && pip i
 streamlit run src/ui/web_gui.py
 ```
 
-* **UI语言切换**: 在侧边栏可自由切换中英文界面。
+- **UI语言切换**: 在侧边栏可自由切换中英文界面。
 - **保存与读取**: 在侧边栏可以将您当前的宠物配置下载为 `.json` 文件，下次使用时直接上传。
 - **彩色面板**: 方案计算结果以不同颜色的卡片显示在输入区域下方。
 
