@@ -22,9 +22,9 @@ Click [here](https://trickcalpetdispatch.streamlit.app/) to use the online strea
 
 📢 Current Status:
 
-- \[GL-CN\]: 国际服（中文）宠物，任务数据已更新 (游戏更新 20260326)
-- \[GL-EN\]: Global server (English) pets and missions data updated (Game update 20260326)
-- \[CN\]: 中国服的宠物和任务信息可能需要更新。如果你可以更新数据，请先参考[贡献指南](https://github.com/chuyaowang/ddl-PetDispatch/wiki/Contribution-Guide-CN)!
+- \[GL-CN\]: 国际服（中文）宠物，任务数据已更新 (游戏更新 20260409)
+- \[GL-EN\]: Global server (English) pets and missions data updated (Game update 20260409)
+- \[CN\]: 中国服的宠物和任务信息需要更新。如果你可以更新数据，请先参考[贡献指南](https://github.com/chuyaowang/ddl-PetDispatch/wiki/Contribution-Guide-CN)!
 - \[KR\]: 需要更新。目前的韩服数据和国际服相同，仅做测试用。如果你可以更新数据，请先参考[贡献指南](https://github.com/chuyaowang/ddl-PetDispatch/wiki/Contribution-Guide-CN)!
   - Translation: Currently the KR server uses the same data as the global server for testing only. If you are able to update, please refer to the [Contribution Guide](https://github.com/chuyaowang/ddl-PetDispatch/wiki/Contribution-Guide) first!
 
