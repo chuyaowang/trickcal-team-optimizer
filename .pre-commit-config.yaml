@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: enforce-bom
+        name: Enforce UTF-8 BOM on CSVs
+        entry: python scripts/enforce_bom.py --fix
+        language: python
+        files: \.csv$
+        pass_filenames: false

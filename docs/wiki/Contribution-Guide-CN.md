@@ -31,11 +31,28 @@
     - *原因：我们的 CSV 文件预设为 **带 BOM 的 UTF-8** 编码。这能确保 Excel 正确识别中文字符。如果您直接创建新文件，Excel 可能会将其识别为乱码。*
 4.  命名规则为 `jobs_YYMMDD.csv`（例如：2026 年 3 月 26 日的更新应命名为 `jobs_260326.csv`）。
 
+**自动化检查:**
+我们拥有一套自动化系统，用于确保所有 CSV 文件都具有正确的 **带 BOM 的 UTF-8** 编码。此检查会在本地（如果已配置）以及每次 Pull Request 时运行。
+
 **列说明:**
 - `Location`: 地图或区域名称。
 - `Task`: 具体派遣任务名称。
 - `Trait 1`, `Trait 2`: 该任务要求的加成特性。
 
+## 开发环境与 Pre-commit
+为了让贡献过程更轻松并避免 CI 失败，我们使用 `pre-commit` 在您提交更改之前自动修复编码问题。
+
+### 设置 pre-commit
+1. 安装依赖：`pip install -r requirements.txt`
+2. 安装 git 钩子 (hook)：`pre-commit install`
+
+### 如果提交 (commit) 失败了怎么办？
+如果 `pre-commit` 发现 CSV 文件缺少 BOM，它将：
+1.  **拦截此次提交。**
+2.  **自动为您为该文件添加 BOM。**
+3.  **操作指令:** 您只需要再次运行 `git add` 暂存被修改的文件，然后再次运行提交命令即可。
+
 ## 提交更改
 - 请确保 CSV 文件以 **带 BOM 的 UTF-8** 编码保存。
 - 提交 Pull Request，将新增或修改的文件放入正确的服务器文件夹中。
+- GitHub Actions 将验证编码。如果检查未通过，构建将显示失败。

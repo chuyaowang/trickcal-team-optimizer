@@ -31,11 +31,28 @@ Dispatch tasks rotate periodically. When a new batch of tasks is released:
     - *Reason: Our CSV files are pre-formatted with **UTF-8 with BOM**. This ensures that Excel correctly identifies the Chinese characters. If you create a new file without BOM, Excel may display the characters as unreadable junk.*
 4.  Use the naming convention `jobs_YYMMDD.csv` (e.g., `jobs_260326.csv` for a March 26, 2026 update).
 
+**Automated Check:**
+We have an automated system to ensure all CSV files have the correct **UTF-8 with BOM** encoding. This check runs both locally (if configured) and on every Pull Request.
+
 **Columns:**
 - `Location`: The name of the map/area.
 - `Task`: The specific name of the dispatch task.
 - `Trait 1`, `Trait 2`: The required traits for score bonuses.
 
+## Development Environment & Pre-commit
+To make contributions easier and avoid CI failures, we use `pre-commit` to automatically fix encoding issues before you even push your changes.
+
+### Setting up pre-commit
+1. Install dependencies: `pip install -r requirements.txt`
+2. Install the git hook: `pre-commit install`
+
+### What happens if a commit fails?
+If `pre-commit` finds a CSV file without a BOM, it will:
+1.  **Block the commit.**
+2.  **Automatically add the BOM** to the file for you.
+3.  **Instruction:** You just need to `git add` the modified file again and run your commit command once more.
+
 ## Submitting Changes
 - Ensure your CSV files are saved with **UTF-8 with BOM** encoding.
 - Submit a Pull Request with the new or updated files in the correct server directory.
+- GitHub Actions will verify the encoding. If the check fails, the build will turn red.
