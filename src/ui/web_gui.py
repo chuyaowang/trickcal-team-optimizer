@@ -27,7 +27,8 @@ def get_cached_tasks(file_path):
 
 # --- PAGE CONFIG ---
 st.set_page_config(
-    page_title="🐾 ddl-PetDispatch",
+    page_title="Trickcal Pet Dispatcher",
+    page_icon="assets/icon.png",
     layout="wide"
 )
 
@@ -92,7 +93,8 @@ def get_current_config():
 with st.sidebar:
     st.header(t('LANGUAGE', st.session_state.lang))
     st.radio(
-        "Select Language", 
+        "", 
+        label_visibility="collapsed",
         options=["cn", "en"], 
         format_func=lambda x: "简体中文" if x == "cn" else "English",
         key='lang',

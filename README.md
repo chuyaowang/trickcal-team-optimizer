@@ -1,6 +1,6 @@
 # 🐾 Trickcal: Chibi Go Farm Dispatch Calculator <br> 嘟嘟脸恶作剧农场派遣计算器
 
-![App snapshot](app.png)
+![App snapshot](assets/app.png)
 
 [English](#english) | [中文](#中文)
 
