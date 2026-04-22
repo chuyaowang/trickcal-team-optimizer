@@ -8,9 +8,9 @@
 
 ## Online App / 在线应用
 
-Click [here](https://trickcalpetdispatch.streamlit.app/) to use the online streamlit app.
+Click [here](https://trickcal-pet-dispatcher.streamlit.app/) to use the online streamlit app.
 
-点击[此处](https://trickcalpetdispatch.streamlit.app/)使用在线的streamlit应用。
+点击[此处](https://trickcal-pet-dispatcher.streamlit.app/)使用在线的streamlit应用。
 
 ---
 
@@ -20,13 +20,15 @@ Click [here](https://trickcalpetdispatch.streamlit.app/) to use the online strea
 
 ⚠️ **宠物和任务信息需要帮助更新！**
 
+- 如果你可以帮助更新数据，请先参考[贡献指南](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Contribution-Guide-CN)! 或在[这里](https://github.com/chuyaowang/trickcal-team-optimizer/discussions/2)加入讨论。
+-  If you want to help update the data, please refer to the [Contribution Guide](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Contribution-Guide) first! Or join the discussion at [this discussion thread](https://github.com/chuyaowang/trickcal-team-optimizer/discussions/2).
+
 📢 Current Status:
 
 - \[GL-CN\]: 国际服（中文）宠物，任务数据已更新 (游戏更新 20260409)
 - \[GL-EN\]: Global server (English) pets and missions data updated (Game update 20260409)
-- \[CN\]: 中国服的宠物和任务信息需要更新。如果你可以更新数据，请先参考[贡献指南](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Contribution-Guide-CN)!
+- \[CN\]: 中国服的宠物，任务信息已更新 (游戏更新 20260409)。
 - \[KR\]: 需要更新。目前的韩服数据和国际服相同，仅做测试用。如果你可以更新数据，请先参考[贡献指南](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Contribution-Guide-CN)!
-  - Translation: Currently the KR server uses the same data as the global server for testing only. If you are able to update, please refer to the [Contribution Guide](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Contribution-Guide) first!
 
 ---
 
