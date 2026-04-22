@@ -2,7 +2,7 @@
 
 TRANSLATIONS = {
     'en': {
-        'APP_TITLE': "🐾 Pet Dispatch Optimal Assignment Calculator (MILP)",
+        'APP_TITLE': "🐾 Globally Optimal Pet Dispatch Team Planner",
         'CONFIG_MGMT': "💾 Configuration Management",
         'LOAD_CONFIG': "Read Config File (.json)",
         'LOAD_SUCCESS': "Configuration loaded successfully!",
@@ -49,7 +49,7 @@ TRANSLATIONS = {
         }
     },
     'cn': {
-        'APP_TITLE': "🐾 宠物派遣最优方案计算器 (MILP)",
+        'APP_TITLE': "🐾 全局最优宠物派遣方案计算器",
         'CONFIG_MGMT': "💾 配置管理",
         'LOAD_CONFIG': "读取配置文件 (.json)",
         'LOAD_SUCCESS': "配置已从文件加载！",
