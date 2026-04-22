@@ -1,6 +1,6 @@
 # Contribution Guide
 
-Help keep the **ddl-PetDispatch** data up to date! This guide explains how to update pet and task information for different game servers.
+Help keep the **trickcal-team-optimizer** data up to date! This guide explains how to update pet and task information for different game servers.
 
 ## Data Structure
 Data is organized by server in the `data/` directory:

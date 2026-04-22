@@ -1,6 +1,6 @@
-# 🐾 Welcome to the ddl-PetDispatch Wiki
+# 🐾 Welcome to the trickcal-team-optimizer Wiki
 
-**ddl-PetDispatch** is a globally optimal pet assignment calculator for farm dispatch tasks using Mixed Integer Linear Programming (MILP).
+**trickcal-team-optimizer** is a globally optimal pet assignment calculator for farm dispatch tasks using Mixed Integer Linear Programming (MILP).
 
 ---
 

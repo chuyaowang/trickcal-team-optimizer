@@ -1,10 +1,10 @@
 # Software Architecture Overview
 
-The `ddl-PetDispatch` project is designed with a modular architecture to separate data handling, core logic, and user interfaces. This structure allows for easy maintenance and expansion to different game servers (CN, GL, KR).
+The `trickcal-team-optimizer` project is designed with a modular architecture to separate data handling, core logic, and user interfaces. This structure allows for easy maintenance and expansion to different game servers (CN, GL, KR).
 
 ## Directory Structure
 ```text
-ddl-PetDispatch/
+trickcal-team-optimizer/
 ├── main.py              # CLI Entry Point
 ├── data/                # Server-specific CSV data (cn, gl, kr)
 ├── docs/wiki/           # Documentation and Wiki files

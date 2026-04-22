@@ -1,6 +1,6 @@
 # User Guide
 
-Welcome to the **ddl-PetDispatch** calculator! This tool helps you find the most efficient way to assign your pets to farm dispatch tasks to maximize your rewards.
+Welcome to the **trickcal-team-optimizer** calculator! This tool helps you find the most efficient way to assign your pets to farm dispatch tasks to maximize your rewards.
 
 ## Choosing an Interface
 

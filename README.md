@@ -24,15 +24,15 @@ Click [here](https://trickcalpetdispatch.streamlit.app/) to use the online strea
 
 - \[GL-CN\]: 国际服（中文）宠物，任务数据已更新 (游戏更新 20260409)
 - \[GL-EN\]: Global server (English) pets and missions data updated (Game update 20260409)
-- \[CN\]: 中国服的宠物和任务信息需要更新。如果你可以更新数据，请先参考[贡献指南](https://github.com/chuyaowang/ddl-PetDispatch/wiki/Contribution-Guide-CN)!
-- \[KR\]: 需要更新。目前的韩服数据和国际服相同，仅做测试用。如果你可以更新数据，请先参考[贡献指南](https://github.com/chuyaowang/ddl-PetDispatch/wiki/Contribution-Guide-CN)!
-  - Translation: Currently the KR server uses the same data as the global server for testing only. If you are able to update, please refer to the [Contribution Guide](https://github.com/chuyaowang/ddl-PetDispatch/wiki/Contribution-Guide) first!
+- \[CN\]: 中国服的宠物和任务信息需要更新。如果你可以更新数据，请先参考[贡献指南](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Contribution-Guide-CN)!
+- \[KR\]: 需要更新。目前的韩服数据和国际服相同，仅做测试用。如果你可以更新数据，请先参考[贡献指南](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Contribution-Guide-CN)!
+  - Translation: Currently the KR server uses the same data as the global server for testing only. If you are able to update, please refer to the [Contribution Guide](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Contribution-Guide) first!
 
 ---
 
 ## English
 
-**ddl-PetDispatch** is a globally optimal pet assignment calculator for farm dispatch tasks in the game Trickcal: Chibi Go. It uses Mixed Integer Linear Programming (MILP) to find the best possible pet teams to maximize your total 🥕 rewards.
+**trickcal-team-optimizer** is a globally optimal pet assignment calculator for farm dispatch tasks in the game Trickcal: Chibi Go. It uses Mixed Integer Linear Programming (MILP) to find the best possible pet teams to maximize your total 🥕 rewards.
 
 ### 🚀 Quick Start
 
@@ -66,17 +66,17 @@ python main.py --config your_config.json --lang en
 
 ### 📖 Documentation
 
-- [User Guide](https://github.com/chuyaowang/ddl-PetDispatch/wiki/User-Guide)
-- [Installation Guide](https://github.com/chuyaowang/ddl-PetDispatch/wiki/Installation-Guide)
-- [Contribution Guide](https://github.com/chuyaowang/ddl-PetDispatch/wiki/Contribution-Guide)
-- [Algorithm Explanation](https://github.com/chuyaowang/ddl-PetDispatch/wiki/Algorithm-Explanation)
-- [Software Architecture](https://github.com/chuyaowang/ddl-PetDispatch/wiki/Software-Architecture)
+- [User Guide](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/User-Guide)
+- [Installation Guide](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Installation-Guide)
+- [Contribution Guide](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Contribution-Guide)
+- [Algorithm Explanation](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Algorithm-Explanation)
+- [Software Architecture](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Software-Architecture)
 
 ---
 
 ## 中文
 
-**ddl-PetDispatch** 是一款针对嘟嘟脸恶作剧农场派遣任务的全局最优宠物分配计算器。它利用混合整数线性规划 (MILP) 算法，自动寻找能够最大化胡萝卜奖励的宠物组合方案。
+**trickcal-team-optimizer** 是一款针对嘟嘟脸恶作剧农场派遣任务的全局最优宠物分配计算器。它利用混合整数线性规划 (MILP) 算法，自动寻找能够最大化胡萝卜奖励的宠物组合方案。
 
 ### 🚀 快速安装
 
@@ -110,8 +110,8 @@ python main.py --config 你的配置文件.json --lang cn
 
 ### 📖 相关文档
 
-- [用户指南](https://github.com/chuyaowang/ddl-PetDispatch/wiki/User-Guide-CN)
-- [安装指南](https://github.com/chuyaowang/ddl-PetDispatch/wiki/Installation-Guide-CN)
-- [贡献指南](https://github.com/chuyaowang/ddl-PetDispatch/wiki/Contribution-Guide-CN)
-- [算法说明 (英文)](https://github.com/chuyaowang/ddl-PetDispatch/wiki/Algorithm-Explanation)
-- [软件架构 (英文)](https://github.com/chuyaowang/ddl-PetDispatch/wiki/Software-Architecture)
+- [用户指南](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/User-Guide-CN)
+- [安装指南](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Installation-Guide-CN)
+- [贡献指南](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Contribution-Guide-CN)
+- [算法说明 (英文)](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Algorithm-Explanation)
+- [软件架构 (英文)](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Software-Architecture)

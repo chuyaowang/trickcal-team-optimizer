@@ -107,7 +107,5 @@ venv.bak/
 *.swo
 
 # Additionals
-GEMINI.md
 test.ipynb
-.gemini/
 data/test/

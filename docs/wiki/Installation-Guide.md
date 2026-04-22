@@ -20,7 +20,7 @@ Open your terminal (Anaconda/Miniconda Prompt on Windows, Terminal on macOS/Linu
 
 ```bash
 # Example for Windows (replace with your actual folder path)
-cd C:\Users\YourName\Desktop\ddl-PetDispatch
+cd C:\Users\YourName\Desktop\trickcal-team-optimizer
 ```
 
 Once inside the folder, run this **one-liner** to create the environment and install everything automatically:

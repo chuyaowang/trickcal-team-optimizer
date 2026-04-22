@@ -175,7 +175,7 @@ with st.sidebar:
     
     st.divider()
     
-    github_url = "https://github.com/chuyaowang/ddl-PetDispatch/tree/modularize-and-refactor"
+    github_url = "https://github.com/chuyaowang/trickcal-team-optimizer"
     st.markdown(f"""
         <div style="margin-top: -10px; margin-bottom: 20px;">
             <a href="{github_url}" target="_blank" style="text-decoration: none; color: inherit;">
