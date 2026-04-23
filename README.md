@@ -25,9 +25,9 @@ Click [here](https://trickcal-pet-dispatcher.streamlit.app/) to use the online s
 
 📢 Current Status:
 
-- \[GL-CN\]: 国际服（中文）宠物，任务数据已更新 (游戏更新 20260409)
-- \[GL-EN\]: Global server (English) pets and missions data updated (Game update 20260409)
-- \[CN\]: 中国服的宠物，任务信息已更新 (游戏更新 20260409)。
+- \[GL-CN\]: 国际服（中文）宠物，任务数据已更新 (游戏更新 20260423)
+- \[GL-EN\]: Global server (English) pets and missions data updated (Game update 20260423)
+- \[CN\]: 中国服的宠物，任务信息已更新 (游戏更新 20260423)。
 - \[KR\]: 需要更新。目前的韩服数据和国际服相同，仅做测试用。如果你可以更新数据，请先参考[贡献指南](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Contribution-Guide-CN)!
 
 ---
