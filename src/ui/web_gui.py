@@ -93,7 +93,7 @@ def get_current_config():
 with st.sidebar:
     st.header(t('LANGUAGE', st.session_state.lang))
     st.radio(
-        "", 
+        t('LANGUAGE', st.session_state.lang), 
         label_visibility="collapsed",
         options=["cn", "en"], 
         format_func=lambda x: "简体中文" if x == "cn" else "English",
