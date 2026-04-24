@@ -274,9 +274,9 @@ if run_calc:
             calc_time = time.time() - start_time
             st.session_state.calc_result = result
             st.session_state.calc_time = calc_time
-    
-    if result:
-        st.balloons()
+            
+            if result.get('status') == 'Optimal':
+                st.balloons()
 
 if st.session_state.get('calc_result'):
     result = st.session_state.calc_result
