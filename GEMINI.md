@@ -54,3 +54,13 @@ pip install pandas pulp streamlit
 
 ## Documentation
 Refer to `docs/wiki/` for User, Installation, and Contribution guides in both English and Chinese.
+
+## Git operation conventions
+
+- **Branching**: Use descriptive feature branches (e.g., `feature/object-extraction`).
+- **Message format**: use the conventional commits for commit messages with the format `<type>[optional scope]: <description>`. Include a summary and a comprehensive bulleted list of technical improvements. Do not contact information at the end of the commit message.
+- **Scope commits**: one logical change per commit. Don't bundle different commit types together
+
+## Gemini interaction guidelines
+
+- When the user asks for a code change or bug fix, always formulate a plan and explain the reasoning first. Wait for the user's explicit confirmation to start coding

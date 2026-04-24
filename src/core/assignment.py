@@ -71,10 +71,12 @@ def calculate_best_assignment(
     v = pulp.LpVariable.dicts("tier", ((j, t) for j in jobs for t in tiers), cat='Binary')
 
     # --- OBJECTIVE FUNCTION ---
-    # Maximize reward, with a tiny penalty for each pet to encourage minimal teams on ties
+    # Maximize reward, with a tiny penalty for each pet to encourage minimal teams on ties.
+    # Higher penalty for borrowed pets (AUX) to prioritize owned pets (REG).
     prob += pulp.lpSum(tier_reward_map[t] * v[j, t] for j in jobs for t in tiers) - \
-            0.0001 * pulp.lpSum(x[w, j] for w in all_workers for j in jobs)
-
+            0.0001 * pulp.lpSum(x[w, j] for w in reg_workers for j in jobs) - \
+            0.00011 * pulp.lpSum(x[w, j] for w in aux_workers for j in jobs)
+            
     # --- CONSTRAINTS ---
 
     # Constraint A: Physical Reality
