@@ -73,9 +73,10 @@ def calculate_best_assignment(
     # --- OBJECTIVE FUNCTION ---
     # Maximize reward, with a tiny penalty for each pet to encourage minimal teams on ties.
     # Higher penalty for borrowed pets (AUX) to prioritize owned pets (REG).
+    # We use a larger gap (0.01 vs 0.0001) to prioritize minimal borrowing over minimal team size.
     prob += pulp.lpSum(tier_reward_map[t] * v[j, t] for j in jobs for t in tiers) - \
             0.0001 * pulp.lpSum(x[w, j] for w in reg_workers for j in jobs) - \
-            0.00011 * pulp.lpSum(x[w, j] for w in aux_workers for j in jobs)
+            0.01 * pulp.lpSum(x[w, j] for w in aux_workers for j in jobs)
             
     # --- CONSTRAINTS ---
 

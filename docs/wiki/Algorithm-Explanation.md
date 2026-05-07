@@ -4,9 +4,9 @@ This project uses **Mixed Integer Linear Programming (MILP)** to solve the pet d
 
 ## Core Objective
 
-The goal is to maximize the **Total Rewards** (carrots) across all selected jobs, while minimizing the number of assigned pets in case of a tie. Additionally, the solver prioritizes using owned pets over borrowed pets when the reward tier and team size would be the same.
+The goal is to maximize the **Total Rewards** (carrots) across all selected jobs, while minimizing the number of borrowed pets in case of a tie. Additionally, the solver prioritizes using a smaller team when the reward tier and the number of borrowed pets would be the same.
 
-$$ \text{Maximize } \left( \sum_{j \in Jobs} \sum_{t \in Tiers} R(t) \cdot v_{j,t} \right) - \left( 0.0001 \cdot \sum_{w \in Owned} \sum_{j \in Jobs} x_{w,j} \right) - \left( 0.00011 \cdot \sum_{w \in Borrowed} \sum_{j \in Jobs} x_{w,j} \right) $$
+$$ \text{Maximize } \left( \sum_{j \in Jobs} \sum_{t \in Tiers} R(t) \cdot v_{j,t} \right) - \left( 0.0001 \cdot \sum_{w \in Owned} \sum_{j \in Jobs} x_{w,j} \right) - \left( 0.01 \cdot \sum_{w \in Borrowed} \sum_{j \in Jobs} x_{w,j} \right) $$
 
 where $v_{j,t}$ is a binary variable that is 1 if job $j$ achieves reward tier $t$, and $R(t)$ is the actual carrot reward for that tier. $x_{w,j}$ is 1 if worker $w$ is assigned to job $j$.
 
