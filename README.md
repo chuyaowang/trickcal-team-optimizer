@@ -8,33 +8,40 @@
 
 ## Online App / 在线应用
 
-Click [here](https://trickcal-pet-dispatcher.streamlit.app/) to use the online streamlit app.
+Click [this link](https://trickcal-pet-dispatcher.streamlit.app/) to use the online streamlit app.
 
 点击[此处](https://trickcal-pet-dispatcher.streamlit.app/)使用在线的streamlit应用。
 
 ---
 
-## Please Note: Help Needed
+## Data Status
 
-⚠️ **Help is needed to update the pets and dispatch missions data for the calculator!**
+⚠️ **Help is needed to update the pets and dispatch missions data!**
 
 ⚠️ **宠物和任务信息需要帮助更新！**
 
 - 如果你可以帮助更新数据，请先参考[贡献指南](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Contribution-Guide-CN)! 或在[这里](https://github.com/chuyaowang/trickcal-team-optimizer/discussions/2)加入讨论。
--  If you want to help update the data, please refer to the [Contribution Guide](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Contribution-Guide) first! Or join the discussion at [this discussion thread](https://github.com/chuyaowang/trickcal-team-optimizer/discussions/2).
+- If you want to help update the data, please refer to the [Contribution Guide](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Contribution-Guide) first! Or join the discussion at [this discussion thread](https://github.com/chuyaowang/trickcal-team-optimizer/discussions/2).
 
 📢 Current Status:
 
-- \[GL-CN\]: 国际服（中文）宠物，任务数据已更新 (游戏更新 20260423)
-- \[GL-EN\]: Global server (English) pets and missions data updated (Game update 20260423)
-- \[CN\]: 中国服的宠物，任务信息已更新 (游戏更新 20260423)。
-- \[KR\]: 需要更新。目前的韩服数据和国际服相同，仅做测试用。如果你可以更新数据，请先参考[贡献指南](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Contribution-Guide-CN)!
+- \[GL-CN\]: 国际服（中文）宠物，任务数据已更新 (游戏更新 20260507)
+- \[GL-EN\]: Global server (English) pets and missions data updated (Game update 20260507)
+- \[CN\]: 中国服的宠物，任务信息已更新 (游戏更新 20260507)。
+- \[KR\]: 需要更新。目前韩服仅有测试用数据。如果你可以更新数据，请先参考[贡献指南](https://github.com/chuyaowang/trickcal-team-optimizer/wiki/Contribution-Guide-CN)!
+
+## Development Roadmap
+
+- Add pet icons to the web UI
+- Add support for the JP server
 
 ---
 
 ## English
 
 **trickcal-team-optimizer** is a globally optimal pet assignment calculator for farm dispatch tasks in the game Trickcal: Chibi Go. It uses Mixed Integer Linear Programming (MILP) to find the best possible pet teams to maximize your total 🥕 rewards.
+
+**Disclaimer:** In-game data (scores for pet rarity and traits) and formulas (task scoring and reward tier conversion) were provided by @dmedgex. The MILP optimization algorithm, Streamlit app, and UI updates (CLI/Tkinter) were developed by the author.
 
 ### 🚀 Quick Start
 
@@ -79,6 +86,8 @@ python main.py --config your_config.json --lang en
 ## 中文
 
 **trickcal-team-optimizer** 是一款针对嘟嘟脸恶作剧农场派遣任务的全局最优宠物分配计算器。它利用混合整数线性规划 (MILP) 算法，自动寻找能够最大化胡萝卜奖励的宠物组合方案。
+
+**声明：** 游戏基础数据（宠物稀有度与特性对应分数）及公式（任务得分与奖励等级转换）由 @dmedgex 提供；MILP优化算法、Streamlit应用及相关UI更新 (CLI/Tkinter) 由本项目作者开发。
 
 ### 🚀 快速安装
 
