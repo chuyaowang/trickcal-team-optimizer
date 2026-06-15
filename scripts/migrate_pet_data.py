@@ -6,6 +6,7 @@ i18n tables, merges by signature, writes data/pets.csv (with empty `id`), and
 prints any collisions for manual resolution.
 """
 
+import itertools
 import os
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
@@ -36,34 +37,44 @@ class PetRow:
         return (self.rarity, self.t1, self.r1, self.t2, self.r2)
 
 
+def _record(sig, names_by_lang: Dict[str, str]) -> dict:
+    record = {col: "" for col in MASTER_COLS}
+    (record["rarity_key"], record["trait_1"], record["rank_1"],
+     record["trait_2"], record["rank_2"]) = sig
+    for lang, name in names_by_lang.items():
+        record[f"name_{lang}"] = name
+    return record
+
+
 def merge_rows(rows: List[PetRow]):
-    """Merge rows sharing a signature into one master record per signature.
+    """Build master records from per-server rows, grouped by signature.
 
-    Returns (merged_records, collisions). A collision is two rows with the same
-    signature AND the same language (ambiguous - can't tell which pet is which).
+    Returns (records, expanded). When a signature is unambiguous (at most one
+    pet per language) it becomes a single merged record. When a signature is
+    shared by multiple pets in some language, we cannot auto-link the names, so
+    every combination of names across languages is emitted as a candidate row
+    (cartesian product) for the maintainer to prune by deleting wrong matches.
+    `expanded` lists those ambiguous signatures with their per-language counts.
     """
-    by_sig: Dict[tuple, List[PetRow]] = {}
+    by_sig: Dict[tuple, Dict[str, List[str]]] = {}
     for row in rows:
-        by_sig.setdefault(row.signature(), []).append(row)
+        by_sig.setdefault(row.signature(), {}).setdefault(row.lang, []).append(row.name)
 
-    merged: List[dict] = []
-    collisions: List[dict] = []
-    for sig, group in by_sig.items():
-        seen_lang: Dict[str, List[str]] = {}
-        for r in group:
-            seen_lang.setdefault(r.lang, []).append(r.name)
-        clash = {lang: names for lang, names in seen_lang.items() if len(names) > 1}
-        if clash:
-            for lang, names in clash.items():
-                collisions.append({"signature": sig, "lang": lang, "names": names})
+    records: List[dict] = []
+    expanded: List[dict] = []
+    for sig, names_by_lang in by_sig.items():
+        if all(len(names) <= 1 for names in names_by_lang.values()):
+            flat = {lang: names[0] for lang, names in names_by_lang.items()}
+            records.append(_record(sig, flat))
             continue
-        record = {col: "" for col in MASTER_COLS}
-        (record["rarity_key"], record["trait_1"], record["rank_1"],
-         record["trait_2"], record["rank_2"]) = sig
-        for r in group:
-            record[f"name_{r.lang}"] = r.name
-        merged.append(record)
-    return merged, collisions
+        # ambiguous: cartesian product over each language's candidates
+        langs = [lang for lang in LANGS if names_by_lang.get(lang)]
+        candidate_lists = [names_by_lang[lang] for lang in langs]
+        for combo in itertools.product(*candidate_lists):
+            records.append(_record(sig, dict(zip(langs, combo))))
+        expanded.append({"signature": sig,
+                         "counts": {lang: len(names_by_lang[lang]) for lang in langs}})
+    return records, expanded
 
 
 def _read_server(server: str) -> List[PetRow]:
@@ -91,11 +102,12 @@ if __name__ == "__main__":
             continue
         all_rows.extend(_read_server(srv))
 
-    merged, collisions = merge_rows(all_rows)
-    out = pd.DataFrame(merged, columns=MASTER_COLS)
+    records, expanded = merge_rows(all_rows)
+    out = pd.DataFrame(records, columns=MASTER_COLS)
     out.to_csv("data/pets.csv", index=False, encoding="utf-8-sig")
-    print(f"Wrote data/pets.csv with {len(merged)} pets (ids blank - fill manually).")
-    if collisions:
-        print(f"\n{len(collisions)} collision(s) need manual resolution:")
-        for c in collisions:
-            print(f"  {c['lang']} {c['signature']}: {c['names']}")
+    print(f"Wrote data/pets.csv with {len(records)} rows (ids blank - fill manually).")
+    if expanded:
+        print(f"\n{len(expanded)} ambiguous signature(s) emitted as duplicate "
+              f"candidate rows - delete the wrong matches:")
+        for e in expanded:
+            print(f"  {e['signature']}  candidates per lang: {e['counts']}")
