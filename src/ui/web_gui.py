@@ -18,6 +18,7 @@ from src.core.i18n import t
 from src.core.analytics import track_visit
 from src.core.constants import SERVER_LANG
 from src.data_loader.vocab_loader import trait_name
+from src.ui import pet_selector
 
 # --- CACHED DATA LOADING ---
 @st.cache_data
@@ -45,6 +46,12 @@ if 'server' not in st.session_state:
     st.session_state.server = 'cn'
 if 'p_limit' not in st.session_state:
     st.session_state.p_limit = 5
+if 'owned_set' not in st.session_state:
+    st.session_state.owned_set = []
+if 'borrow_counts' not in st.session_state:
+    st.session_state.borrow_counts = {}
+if 'pet_mode' not in st.session_state:
+    st.session_state.pet_mode = 'owned'
 if 'msg_success' not in st.session_state:
     st.session_state.msg_success = False
 if 'msg_error' not in st.session_state:
@@ -61,23 +68,12 @@ def on_config_upload():
     if uploaded_file is not None:
         try:
             config = json.load(uploaded_file)
-            
-            # Reset existing pet selections to prevent "merging" configs
-            for key in list(st.session_state.keys()):
-                if key.startswith("chk_"):
-                    st.session_state[key] = False
-                elif key.startswith("num_"):
-                    st.session_state[key] = 0
-
-            # Safe to update these because the widgets haven't rendered yet in this run
+            owned, counts = pet_selector.config_to_state(config)
+            st.session_state.owned_set = owned
+            st.session_state.borrow_counts = counts
             st.session_state.server = config.get('server', st.session_state.server)
             st.session_state.p_limit = config.get('max_job_number', st.session_state.p_limit)
             st.session_state.lang = config.get('ui_language', st.session_state.lang)
-            
-            for pet_name in config.get('owned_pets', []):
-                st.session_state[f"chk_{pet_name}"] = True
-            for pet_name, count in config.get('aux_pets_counts', {}).items():
-                st.session_state[f"num_{pet_name}"] = count
             st.session_state.msg_success = True
             clear_results()
         except Exception as e:
@@ -85,15 +81,13 @@ def on_config_upload():
 
 # --- HELPER: GET CURRENT CONFIG ---
 def get_current_config():
-    owned = [k.replace("chk_", "") for k, v in st.session_state.items() if k.startswith("chk_") and v]
-    aux = {k.replace("num_", ""): v for k, v in st.session_state.items() if k.startswith("num_") and v > 0}
-    return {
-        "server": st.session_state.server,
-        "max_job_number": st.session_state.p_limit,
-        "owned_pets": owned,
-        "aux_pets_counts": aux,
-        "ui_language": st.session_state.lang
-    }
+    return pet_selector.state_to_config(
+        st.session_state.owned_set,
+        st.session_state.borrow_counts,
+        st.session_state.server,
+        st.session_state.p_limit,
+        st.session_state.lang,
+    )
 
 # --- SIDEBAR START ---
 with st.sidebar:
@@ -259,8 +253,8 @@ st.divider()
 run_calc = st.button(t('RUN_OPTIMIZER', st.session_state.lang), use_container_width=True, type="primary")
 
 if run_calc:
-    owned_pet_names = [k.replace("chk_", "") for k, v in st.session_state.items() if k.startswith("chk_") and v]
-    aux_pets_counts = {k.replace("num_", ""): v for k, v in st.session_state.items() if k.startswith("num_") and v > 0}
+    owned_pet_names = list(st.session_state.owned_set)
+    aux_pets_counts = {k: v for k, v in st.session_state.borrow_counts.items() if v > 0}
     
     if not owned_pet_names:
         st.warning(t('SELECT_OWNED_WARNING', st.session_state.lang))
