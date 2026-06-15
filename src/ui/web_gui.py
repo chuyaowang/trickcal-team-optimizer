@@ -61,6 +61,25 @@ def clear_results():
     """Clears the cached calculation result when any input parameter changes."""
     st.session_state.calc_result = None
 
+def _pet_label(pet, with_name):
+    """Markdown label for a pill: thumbnail image (+ optional name)."""
+    uri = pet_selector.pet_icon_uri(pet.get('thumb'))
+    title = pet['name'].replace('"', '')
+    img = f'![]({uri} "{title}")' if uri else ''
+    if with_name:
+        return f"{img} {pet['name']}".strip()
+    return img if img else pet['name']
+
+def on_palette_click():
+    clicked = st.session_state.palette
+    if clicked:
+        if st.session_state.pet_mode == 'owned':
+            st.session_state.owned_set = pet_selector.add_owned(st.session_state.owned_set, clicked)
+        else:
+            st.session_state.borrow_counts = pet_selector.inc_borrow(st.session_state.borrow_counts, clicked)
+    st.session_state.palette = None
+    clear_results()
+
 # --- CONFIG UPLOAD CALLBACK (The Streamlit-Native Fix for Reversal Bug) ---
 def on_config_upload():
     """Processes config file only when a new file is uploaded."""
@@ -215,39 +234,42 @@ RANK_COLORS = {
     "C": "#CD7F32", "D": "#A0522D", "N/A": "#F0F2F6"
 }
 
-col_owned, col_aux = st.columns(2)
+# Pet selector: mode toggle + search + palette pills (boxes added in Task 5)
+pets_by_name = {p['name']: p for p in all_pets}
 
-with col_owned:
-    st.subheader(t('MY_PETS', st.session_state.lang))
-    owned_search = st.text_input(t('SEARCH_PETS', st.session_state.lang), key="owned_search")
-    
-    with st.expander(t('EXPAND_PET_LIST', st.session_state.lang), expanded=True):
-        filtered_owned = [
-            p for p in all_pets 
-            if owned_search.lower() in p['name'].lower() or st.session_state.get(f"chk_{p['name']}", False)
-        ]
-        
-        o_cols = st.columns(2)
-        for i, pet in enumerate(filtered_owned):
-            name = pet['name']
-            with o_cols[i % 2]:
-                st.checkbox(f"{name}", key=f"chk_{name}", on_change=clear_results)
+_mode_lang = st.session_state.lang  # capture before widget to avoid session_state access in format_func
+st.segmented_control(
+    t('MY_PETS', _mode_lang) + " / " + t('BORROW_PETS', _mode_lang),
+    options=['owned', 'borrow'],
+    format_func=lambda m, _l=_mode_lang: t('MY_PETS', _l) if m == 'owned'
+        else t('BORROW_PETS', _l),
+    key='pet_mode',
+    on_change=clear_results,
+    label_visibility='collapsed',
+)
 
-with col_aux:
-    st.subheader(t('BORROW_PETS', st.session_state.lang))
-    aux_search = st.text_input(t('SEARCH_PETS', st.session_state.lang) + " ", key="aux_search")
-    
-    with st.expander(t('SET_BORROW_COPIES', st.session_state.lang), expanded=True):
-        filtered_aux = [
-            p for p in all_pets 
-            if aux_search.lower() in p['name'].lower() or st.session_state.get(f"num_{p['name']}", 0) > 0
-        ]
-        
-        cols = st.columns(3)
-        for i, pet in enumerate(filtered_aux):
-            name = pet['name']
-            with cols[i % 3]:
-                st.number_input(f"{name}", min_value=0, max_value=20, step=1, key=f"num_{name}", on_change=clear_results)
+mode = st.session_state.pet_mode
+tint = "#2e7d32" if mode == 'owned' else "#ef6c00"   # green / orange
+st.markdown(
+    f"<style>.st-key-palette_box [data-baseweb='tag'],"
+    f".st-key-palette_box button[kind='pillsActive']"
+    f"{{background-color:{tint}33;border-color:{tint};}}</style>",
+    unsafe_allow_html=True,
+)
+
+search = st.text_input(t('SEARCH_PETS', st.session_state.lang), key="pet_search")
+filtered = [p['name'] for p in all_pets if search.lower() in p['name'].lower()]
+
+with st.container(key="palette_box"):
+    st.pills(
+        "palette",
+        options=filtered,
+        selection_mode="single",
+        format_func=lambda n: _pet_label(pets_by_name[n], with_name=True),
+        key="palette",
+        on_change=on_palette_click,
+        label_visibility="collapsed",
+    )
 
 st.divider()
 run_calc = st.button(t('RUN_OPTIMIZER', st.session_state.lang), use_container_width=True, type="primary")
