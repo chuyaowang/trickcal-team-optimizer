@@ -40,10 +40,12 @@ def load_pets(server: str = 'cn', data_dir: str = './data') -> List[Dict]:
         rarity_key = row["rarity_key"].strip()
         pet_id = row["id"].strip()
         icon = os.path.join(data_dir, "pet_images", f"{pet_id}.png")
+        thumb = os.path.join(data_dir, "pet_images", "thumbnails", f"{pet_id}.png")
         pets.append({
             'name': name,
             'id': pet_id or None,
             'icon': icon if pet_id and os.path.exists(icon) else None,
+            'thumb': thumb if pet_id and os.path.exists(thumb) else None,
             'rarity_key': rarity_key,
             # localized rarity string kept for backward compat (cli.py, gui.py)
             'rarity': vocab_loader.rarity_name(rarity_key, lang),
