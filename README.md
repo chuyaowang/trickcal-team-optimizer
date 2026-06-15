@@ -1,4 +1,4 @@
-# 🐾 Trickcal: Chibi Go Farm Dispatch Calculator <br> 嘟嘟脸恶作剧农场派遣计算器
+# 🐾 Trickcal: Chibi Go Farm Dispatch Calculator <br> 嘟嘟脸恶作剧农场派遣计算器 ![visitors](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmichaelseelion.goatcounter.com%2Fcounter%2FTOTAL.json&query=%24.count_unique&label=App%20Uses&color=orange&style=flat)
 
 ![App snapshot](assets/app.png)
 
@@ -8,17 +8,9 @@
 
 ## Online App / 在线应用
 
-Click [this link](https://trickcal-pet-dispatcher.streamlit.app/) to use the online streamlit app.
-
-点击[此处](https://trickcal-pet-dispatcher.streamlit.app/)使用在线的streamlit应用。
-
-### App Usage / 应用访问量
-
-![Total visitors](https://michaelseelion.goatcounter.com/counter/TOTAL.svg)
+Click [this link](https://trickcal-pet-dispatcher.streamlit.app/) to use the online streamlit app. / 点击[此处](https://trickcal-pet-dispatcher.streamlit.app/)使用在线的streamlit应用。
 
 ![Visitors over time](assets/visitors.svg)
-
-> The chart is refreshed automatically on each push to `main`. 图表会在每次推送到 `main` 分支时自动更新。
 
 ---
 
