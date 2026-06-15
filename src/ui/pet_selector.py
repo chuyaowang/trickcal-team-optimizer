@@ -27,17 +27,20 @@ def add_owned(owned: List[str], name: str) -> List[str]:
 
 
 def remove_owned(owned: List[str], name: str) -> List[str]:
+    """Owned list without ``name`` (unchanged if absent)."""
     return [n for n in owned if n != name]
 
 
 def inc_borrow(counts: Dict[str, int], name: str,
                max_copies: int = MAX_COPIES) -> Dict[str, int]:
+    """New counts with ``name`` incremented, capped at ``max_copies``."""
     out = dict(counts)
     out[name] = min(out.get(name, 0) + 1, max_copies)
     return out
 
 
 def dec_borrow(counts: Dict[str, int], name: str) -> Dict[str, int]:
+    """New counts with ``name`` decremented; the key is dropped at 0."""
     out = dict(counts)
     if name in out:
         if out[name] <= 1:
@@ -62,6 +65,7 @@ def copy_value_name(value: str) -> str:
 
 def state_to_config(owned: List[str], borrow_counts: Dict[str, int],
                     server: str, max_job_number: int, lang: str) -> dict:
+    """Build the config dict from selector state (drops zero borrow counts)."""
     return {
         "server": server,
         "max_job_number": max_job_number,
@@ -72,6 +76,7 @@ def state_to_config(owned: List[str], borrow_counts: Dict[str, int],
 
 
 def config_to_state(config: dict) -> Tuple[List[str], Dict[str, int]]:
+    """Return ``(owned_set, borrow_counts)`` from a config dict (safe defaults)."""
     owned = list(config.get("owned_pets", []))
     counts = {k: int(v) for k, v in config.get("aux_pets_counts", {}).items()
               if int(v) > 0}
