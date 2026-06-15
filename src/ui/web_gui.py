@@ -15,6 +15,7 @@ from src.data_loader.csv_loader import load_pets, load_tasks, get_available_job_
 from src.core.scoring import precompute_pet_task_scores, get_reward_level, get_carrot_reward, format_reward_range
 from src.core.assignment import calculate_best_assignment
 from src.core.i18n import t
+from src.core.analytics import track_visit
 
 # --- CACHED DATA LOADING ---
 @st.cache_data
@@ -31,6 +32,9 @@ st.set_page_config(
     page_icon="assets/icon.png",
     layout="wide"
 )
+
+# --- ANALYTICS (best-effort, once per session) ---
+track_visit()
 
 # --- SESSION STATE INITIALIZATION ---
 if 'lang' not in st.session_state:
