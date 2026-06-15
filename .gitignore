@@ -109,3 +109,4 @@ venv.bak/
 # Additionals
 test.ipynb
 data/test/
+.streamlit/secrets.toml
