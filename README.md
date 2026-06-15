@@ -12,6 +12,14 @@ Click [this link](https://trickcal-pet-dispatcher.streamlit.app/) to use the onl
 
 点击[此处](https://trickcal-pet-dispatcher.streamlit.app/)使用在线的streamlit应用。
 
+### App Usage / 应用访问量
+
+![Total visitors](https://michaelseelion.goatcounter.com/counter/TOTAL.svg)
+
+![Visitors over time](assets/visitors.svg)
+
+> The chart is refreshed automatically on each push to `main`. 图表会在每次推送到 `main` 分支时自动更新。
+
 ---
 
 ## Data Status
