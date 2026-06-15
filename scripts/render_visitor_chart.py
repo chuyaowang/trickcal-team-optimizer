@@ -30,6 +30,10 @@ OUTPUT = os.environ.get("OUTPUT", "assets/visitors.svg")
 
 STATS_URL = f"https://{CODE}.goatcounter.com/api/v0/stats/total"
 
+# Minimum x-axis span: when there's little data, pad the axis this many days
+# to the right so a sparse chart (e.g. a single day) isn't cramped.
+MIN_SPAN_DAYS = 90
+
 
 def fetch_total():
     now = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
@@ -44,14 +48,20 @@ def fetch_total():
 
 
 def build_series(stats):
-    """Return (sorted_days, daily_counts) with zero-visit days filled in."""
+    """Return (days, counts) covering only the range that has visitor data.
+
+    GoatCounter returns every day in the requested window, including zero-visit
+    days, so we anchor the range to the first and last days that actually have
+    visitors and zero-fill any gaps in between for a continuous line.
+    """
     by_day = {
         datetime.strptime(s["day"], "%Y-%m-%d").date(): int(s.get("daily", 0))
         for s in stats
     }
-    if not by_day:
+    data_days = [d for d, c in by_day.items() if c > 0]
+    if not data_days:
         return [], []
-    start, end = min(by_day), date.today()
+    start, end = min(data_days), max(data_days)
     days, counts = [], []
     cur = start
     while cur <= end:
@@ -65,8 +75,15 @@ def render(days, counts, total):
     fig, ax = plt.subplots(figsize=(9, 3.2), dpi=120)
 
     if days:
-        ax.plot(days, counts, color="#f4900c", linewidth=2)
+        ax.plot(days, counts, color="#f4900c", linewidth=2,
+                marker="o", markersize=4)
         ax.fill_between(days, counts, color="#f4900c", alpha=0.15)
+        # Anchor to the first data day; pad the right out to MIN_SPAN_DAYS so a
+        # sparse chart spans a few months instead of being cramped. Once data
+        # covers more than that span, the axis just follows the data.
+        left = days[0]
+        right = max(days[-1], left + timedelta(days=MIN_SPAN_DAYS))
+        ax.set_xlim(left - timedelta(days=1), right)
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
         fig.autofmt_xdate(rotation=0, ha="center")
     else:
