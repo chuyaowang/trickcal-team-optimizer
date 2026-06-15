@@ -6,28 +6,6 @@ SKILL_SCORE_MAP = {
     'S': 22
 }
 
-# 稀有度基础分映射 (中文)
-RARITY_BASE_MAP_CN = {
-    '普通宠物': 2,
-    '高级宠物': 2,
-    '稀有宠物': 3,
-    '传说宠物': 5
-}
-
-# Rarity base score mapping (English)
-RARITY_BASE_MAP_EN = {
-    'Normal': 2,
-    'Rare': 2,
-    'Unique': 3,
-    'Legendary': 5
-}
-
-def get_rarity_map(server: str):
-    """根据服务器返回对应的稀有度分值映射 (legacy; removed in load_pets rewrite)"""
-    if server == 'gl-en':
-        return RARITY_BASE_MAP_EN
-    return RARITY_BASE_MAP_CN
-
 # Server -> data language (1:1; used for names, traits, and reward labels)
 SERVER_LANG = {
     "cn": "zh_hans",
