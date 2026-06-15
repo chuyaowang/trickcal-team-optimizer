@@ -53,8 +53,12 @@ def load_pets(server: str = 'cn', data_dir: str = './data') -> List[Dict]:
         })
     return pets
 
-def load_tasks(file_path: str) -> List[Dict]:
-    """从指定路径读取任务信息"""
+def load_tasks(file_path: str, lang: str = 'zh_hans') -> List[Dict]:
+    """Load tasks; convert localized job traits to language-neutral keys.
+
+    `lang` is the DATA language of the jobs file (SERVER_LANG[server]), not the
+    UI language. Unrecognized trait text is kept as-is (flagged by the validator).
+    """
     locations = []
     try:
         df = pd.read_csv(file_path)
@@ -64,10 +68,11 @@ def load_tasks(file_path: str) -> List[Dict]:
                 continue
 
             bonus_skills = []
-            if pd.notna(row['Trait 1']):
-                bonus_skills.append(row['Trait 1'])
-            if pd.notna(row['Trait 2']):
-                bonus_skills.append(row['Trait 2'])
+            for col in ('Trait 1', 'Trait 2'):
+                if pd.notna(row[col]):
+                    text = str(row[col]).strip()
+                    key = vocab_loader.trait_key_from_localized(text, lang)
+                    bonus_skills.append(key if key else text)
 
             locations.append({
                 'task': f"{location_name} - {row['Task']}",
