@@ -1,0 +1,49 @@
+name: Visitor Chart
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'assets/visitors.svg'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: visitor-chart
+  cancel-in-progress: true
+
+jobs:
+  render-chart:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install matplotlib
+
+      - name: Render visitor chart
+        env:
+          GOATCOUNTER_TOKEN: ${{ secrets.GOATCOUNTER_TOKEN }}
+          GOATCOUNTER_CODE: michaelseelion
+        run: python scripts/render_visitor_chart.py
+
+      - name: Commit updated chart
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add assets/visitors.svg
+          if git diff --cached --quiet; then
+            echo "No changes to the visitor chart."
+          else
+            git commit -m "chore(analytics): update visitor chart [skip ci]"
+            git push
+          fi
