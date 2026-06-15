@@ -32,7 +32,10 @@ jobs:
     - name: Run tests with pytest
       run: |
         pytest tests/
-        
+
+    - name: Validate pet data
+      run: python -m scripts.validate_pet_data
+
     - name: Run pre-commit hooks
       run: |
         pip install pre-commit

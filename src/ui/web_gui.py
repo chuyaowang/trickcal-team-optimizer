@@ -16,6 +16,8 @@ from src.core.scoring import precompute_pet_task_scores, get_reward_level, get_c
 from src.core.assignment import calculate_best_assignment
 from src.core.i18n import t
 from src.core.analytics import track_visit
+from src.core.constants import SERVER_LANG
+from src.data_loader.vocab_loader import trait_name
 
 # --- CACHED DATA LOADING ---
 @st.cache_data
@@ -23,8 +25,8 @@ def get_cached_pets(server):
     return load_pets(server=server)
 
 @st.cache_data
-def get_cached_tasks(file_path):
-    return load_tasks(file_path)
+def get_cached_tasks(file_path, lang):
+    return load_tasks(file_path, lang=lang)
 
 # --- PAGE CONFIG ---
 st.set_page_config(
@@ -193,7 +195,8 @@ with st.sidebar:
 st.title(t('APP_TITLE', st.session_state.lang))
 
 all_pets = get_cached_pets(st.session_state.server)
-tasks = get_cached_tasks(job_file_path)
+data_lang = SERVER_LANG[st.session_state.server]
+tasks = get_cached_tasks(job_file_path, data_lang)
 
 # Task Preview
 with st.expander(t('TASK_PREVIEW', st.session_state.lang), expanded=True):
@@ -202,7 +205,7 @@ with st.expander(t('TASK_PREVIEW', st.session_state.lang), expanded=True):
         preview_df = pd.DataFrame([
             {
                 t('TASK_NAME', st.session_state.lang): task['task'],
-                t('BONUS_TRAITS', st.session_state.lang): ", ".join(task['bonus_skills'])
+                t('BONUS_TRAITS', st.session_state.lang): ", ".join(trait_name(k, data_lang) for k in task['bonus_skills'])
             }
             for task in preview_tasks
         ])
@@ -308,7 +311,8 @@ if st.session_state.get('calc_result'):
             bg_color = RANK_COLORS.get(reward_level, "#F0F2F6")
             borrow_tag = " (借)" if st.session_state.lang == 'cn' else " (Borrow)"
             pet_list_str = ", ".join([f"{p['name']}{borrow_tag if p['is_borrowed'] else ''}" for p in team])
-            
+            bonus_str = ", ".join(trait_name(k, data_lang) for k in task['bonus_skills'])
+
             st.markdown(f"""
                 <div style="background-color: {bg_color}; padding: 8px 12px; border-radius: 8px; border: 1px solid #ddd; color: black; margin-bottom: 10px;">
                     <div style="font-size: 1.0em; font-weight: bold; color: #333;">{t('STATUS', st.session_state.lang)} {i}: {task['task']}</div>
@@ -316,7 +320,7 @@ if st.session_state.get('calc_result'):
                     <hr style="margin: 6px 0; border: 0; border-top: 1px solid rgba(0,0,0,0.1);">
                     <div style="display: flex; flex-wrap: wrap; gap: 15px; font-size: 0.95em;">
                         <div><strong>{t('DISPATCH_TEAM', st.session_state.lang)}:</strong> {pet_list_str}</div>
-                        <div><strong>{t('BONUS_TRAITS', st.session_state.lang)}:</strong> {', '.join(task['bonus_skills'])}</div>
+                        <div><strong>{t('BONUS_TRAITS', st.session_state.lang)}:</strong> {bonus_str}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)

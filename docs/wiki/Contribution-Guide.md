@@ -3,25 +3,37 @@
 Help keep the **trickcal-team-optimizer** data up to date! This guide explains how to update pet and task information for different game servers.
 
 ## Data Structure
-Data is organized by server in the `data/` directory:
-- `data/cn/`: China Server (Simplified Chinese)
-- `data/gl-cn/`: Global Server (Traditional Chinese)
-- `data/gl-en/`: Global Server (English)
-- `data/kr/`: Korea Server (Traditional Chinese / English) **TESTING DATA ONLY**
+Pets now live in a single canonical file; only the per-server **jobs** files are
+split by server:
+- `data/pets.csv`: the canonical master — one row per pet, shared across servers.
+- `data/i18n/traits.csv`, `data/i18n/rarity.csv`: translation tables mapping
+  language-neutral keys to localized names.
+- `data/pet_images/<id>.png`: pet icons, named by the pet's `id`.
+- `data/<server>/jobs_*.csv`: dispatch tasks per server (`cn`, `gl-cn`,
+  `gl-en`, `kr`). `kr` is **TESTING DATA ONLY**.
 
-## 1. Updating Pets (`pets.csv`)
-Each server subdirectory has its own `pets.csv`. Use this file to add new pets as they are released in that specific server.
+Each server maps to one language: `cn`→Simplified, `gl-cn`→Traditional,
+`gl-en`→English, `kr`→Korean. A pet is considered available on a server when it
+has a non-empty name in that server's language column.
 
-**Crucial Language Note:**
-- **China Server (CN)**: You **must** use **Simplified Chinese** for pet names and traits.
-- **Global Server (GL)**: You **must** use **Traditional Chinese** for pet names and traits.
-- Failure to use the correct character set will cause the scoring logic to fail to find matches.
+## 1. Updating Pets (`data/pets.csv`)
+Add or edit one row per pet in the canonical master.
 
 **Columns:**
-- `Pet`: The unique name of the pet.
-- `Rarity`: Rarity level (e.g., `传说宠物`, `稀有宠物`).
-- `Trait_1`, `Rank_1`: The first skill and its rank (C, B, A, S).
-- `Trait_2`, `Rank_2`: The second skill and its rank.
+- `id`: the pet's numeric id; must match its icon `data/pet_images/<id>.png`.
+  May be left blank (the pet then shows without an icon).
+- `rarity_key`: one of `NORMAL`, `RARE`, `UNIQUE`, `LEGENDARY`.
+- `trait_1`, `rank_1`, `trait_2`, `rank_2`: trait **keys** (e.g. `KIND`,
+  `BOLD`) and ranks (`C`, `B`, `A`, `S`). Leave the trait blank if absent.
+- `name_en`, `name_zh_hans`, `name_zh_hant`, `name_ko`: the pet's name per
+  language. Leave a name blank if the pet is not on that server (or unknown).
+
+**Adding a new trait or rarity:** add a row to `data/i18n/traits.csv` (or
+`rarity.csv`) with the new key and its translation in each language. The keys you
+use in `pets.csv` and in the jobs files must exist in these tables.
+
+**Before submitting:** run `python -m scripts.validate_pet_data` — it checks that
+every trait/rarity key resolves and that jobs traits map to keys.
 
 ## 2. Updating Jobs (`jobs_*.csv`)
 Dispatch tasks rotate periodically. When a new batch of tasks is released:
@@ -37,7 +49,9 @@ We have an automated system to ensure all CSV files have the correct **UTF-8 wit
 **Columns:**
 - `Location`: The name of the map/area.
 - `Task`: The specific name of the dispatch task.
-- `Trait 1`, `Trait 2`: The required traits for score bonuses.
+- `Trait 1`, `Trait 2`: The required traits for score bonuses, written in the
+  server's language. Each must match a translation in `data/i18n/traits.csv` so
+  it can be mapped to a trait key (the validator flags any that don't).
 
 ## Development Environment & Pre-commit
 To make contributions easier and avoid CI failures, we use `pre-commit` to automatically fix encoding issues before you even push your changes.

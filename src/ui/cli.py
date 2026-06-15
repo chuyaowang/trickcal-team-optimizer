@@ -2,6 +2,8 @@ from typing import List, Dict
 import os
 from src.core.scoring import get_reward_level, get_carrot_reward, format_reward_range
 from src.core.i18n import t
+from src.core.constants import SERVER_LANG
+from src.data_loader.vocab_loader import trait_name
 
 def select_server(lang='cn') -> str:
     """让用户选择服务器"""
@@ -40,12 +42,16 @@ def select_job_file(job_files: List[str], lang='cn') -> str:
         except ValueError:
             print("Number only")
 
-def show_pets(pets: List[Dict], skill_scores: Dict[str, int], lang='cn'):
+def show_pets(pets: List[Dict], skill_scores: Dict[str, int], lang='cn', server='cn'):
     """显示所有宠物列表"""
     print(f"\n===== {t('MY_PETS', lang)} =====")
+    data_lang = SERVER_LANG.get(server, 'en')
     score_to_level = {v: k for k, v in skill_scores.items()}
     for i, pet in enumerate(pets, 1):
-        skill_str = ', '.join([f"{k}({score_to_level.get(v, v)})" for k, v in pet['skill_score'].items()])
+        skill_str = ', '.join(
+            f"{trait_name(k, data_lang)}({score_to_level.get(v, v)})"
+            for k, v in pet['skill_score'].items()
+        )
         print(f"{i}. {pet['name']} - {pet['rarity']} - {skill_str}")
 
 def select_owned_pets(pets: List[Dict], lang='cn') -> List[Dict]:
