@@ -65,7 +65,7 @@ All CSVs saved as **UTF-8 with BOM**.
 
 Example:
 
-```
+```csv
 id,rarity_key,trait_1,rank_1,trait_2,rank_2,name_en,name_zh_hans,name_zh_hant,name_ko
 148590,NORMAL,KIND,C,DULL,C,Sato,莎兔,蘋果兔,
 ```
@@ -75,7 +75,7 @@ id,rarity_key,trait_1,rank_1,trait_2,rank_2,name_en,name_zh_hans,name_zh_hant,na
 `key, en, zh_hans, zh_hant, ko` — one row per trait. Keys are stable ASCII
 tokens seeded from the English names.
 
-```
+```csv
 key,en,zh_hans,zh_hant,ko
 KIND,Kind,体贴,體貼,
 DULL,Dull,迟钝,遲鈍,
@@ -85,6 +85,31 @@ DULL,Dull,迟钝,遲鈍,
 
 `key, en, zh_hans, zh_hant, ko` — display names for the four rarity keys.
 (Base scores live in `constants.py`, keyed by `rarity_key`.)
+
+### Concrete vocabulary (seeded from current data)
+
+These are the closed sets derived from the existing CN/EN files. The `ko` column
+is blank until real Korean data arrives.
+
+Traits (`traits.csv`):
+
+| key       | en    | zh_hans | zh_hant |
+|-----------|-------|---------|---------|
+| `KIND`    | Kind  | 体贴    | 體貼    |
+| `DULL`    | Dull  | 迟钝    | 遲鈍    |
+| `BRISK`   | Brisk | 活泼    | 活潑    |
+| `BOLD`    | Bold  | 自信    | 自信    |
+| `KEEN`    | Keen  | 敏锐    | 敏銳    |
+| `BOND`    | Bond  | 亲密    | 親密    |
+
+Rarity (`rarity.csv`) — base score from `constants.py`:
+
+| key         | en        | zh_hans  | base score |
+|-------------|-----------|----------|------------|
+| `NORMAL`    | Normal    | 普通宠物 | 2          |
+| `RARE`      | Rare      | 高级宠物 | 2          |
+| `UNIQUE`    | Unique    | 稀有宠物 | 3          |
+| `LEGENDARY` | Legendary | 传说宠物 | 5          |
 
 ### Icons
 
@@ -101,6 +126,7 @@ no icon.
 ## Loader & Runtime Changes
 
 ### `load_pets(server)`
+
 1. `lang = SERVER_LANG[server]`.
 2. Read `pets.csv`; keep rows where `name_<lang>` is non-empty (availability).
 3. For each pet build the existing dict shape, plus `id`:
@@ -110,15 +136,18 @@ no icon.
    - `id` = id; icon path = `pet_images/{id}.png` (or `None` if absent)
 
 ### `load_tasks(file_path, lang)`
+
 - Jobs files stay localized. Reverse-map each localized task trait → trait key
   via `traits.csv` for `lang`. `bonus_skills` become trait keys.
 - Unrecognized trait text is surfaced by the validator (see Validation).
 
 ### Scoring
+
 - Matches trait **keys** on both sides (pet `skill_score` keys ↔ task
   `bonus_skills` keys). Logic unchanged; only the token space is now neutral.
 
 ### UI (only what this spec requires)
+
 - Translate trait/rarity **keys → localized names** so the existing display keeps
   working after the loader switches to keys. Rendering the icon next to the pet
   name is the **follow-on UI task**, out of scope here (see Non-Goals).
