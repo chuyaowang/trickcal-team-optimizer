@@ -71,6 +71,21 @@ def on_palette_click():
         clear_results()
     st.session_state.palette = None
 
+def on_owned_box_click():
+    clicked = st.session_state.owned_box
+    if clicked:
+        st.session_state.owned_set = pet_selector.remove_owned(st.session_state.owned_set, clicked)
+        clear_results()
+    st.session_state.owned_box = None
+
+def on_borrow_box_click():
+    clicked = st.session_state.borrow_box
+    if clicked:
+        name = pet_selector.copy_value_name(clicked)
+        st.session_state.borrow_counts = pet_selector.dec_borrow(st.session_state.borrow_counts, name)
+        clear_results()
+    st.session_state.borrow_box = None
+
 # --- CONFIG UPLOAD CALLBACK (The Streamlit-Native Fix for Reversal Bug) ---
 def on_config_upload():
     """Processes config file only when a new file is uploaded."""
@@ -261,6 +276,43 @@ with st.container(key="palette_box"):
         on_change=on_palette_click,
         label_visibility="collapsed",
     )
+
+# Compact icon-only summary boxes (green = owned, orange = borrow)
+st.markdown(
+    "<style>"
+    ".st-key-owned_box_wrap [data-baseweb='tag']{background-color:#2e7d3233;border-color:#2e7d32;}"
+    ".st-key-borrow_box_wrap [data-baseweb='tag']{background-color:#ef6c0033;border-color:#ef6c00;}"
+    "</style>",
+    unsafe_allow_html=True,
+)
+box_owned, box_borrow = st.columns(2)
+
+with box_owned:
+    st.caption(t('MY_PETS', st.session_state.lang))
+    with st.container(key="owned_box_wrap"):
+        st.pills(
+            "owned_box_pills",
+            options=list(st.session_state.owned_set),
+            selection_mode="single",
+            format_func=lambda n: pet_selector.pet_label(pets_by_name[n], with_name=False),
+            key="owned_box",
+            on_change=on_owned_box_click,
+            label_visibility="collapsed",
+        )
+
+with box_borrow:
+    st.caption(t('BORROW_PETS', st.session_state.lang))
+    borrow_values = pet_selector.expand_borrow(st.session_state.borrow_counts)
+    with st.container(key="borrow_box_wrap"):
+        st.pills(
+            "borrow_box_pills",
+            options=borrow_values,
+            selection_mode="single",
+            format_func=lambda v: pet_selector.pet_label(pets_by_name[pet_selector.copy_value_name(v)], with_name=False),
+            key="borrow_box",
+            on_change=on_borrow_box_click,
+            label_visibility="collapsed",
+        )
 
 st.divider()
 run_calc = st.button(t('RUN_OPTIMIZER', st.session_state.lang), use_container_width=True, type="primary")
