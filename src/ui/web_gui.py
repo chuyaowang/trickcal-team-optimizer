@@ -61,15 +61,6 @@ def clear_results():
     """Clears the cached calculation result when any input parameter changes."""
     st.session_state.calc_result = None
 
-def _pet_label(pet, with_name):
-    """Markdown label for a pill: thumbnail image (+ optional name)."""
-    uri = pet_selector.pet_icon_uri(pet.get('thumb'))
-    title = pet['name'].replace('"', '')
-    img = f'![]({uri} "{title}")' if uri else ''
-    if with_name:
-        return f"{img} {pet['name']}".strip()
-    return img if img else pet['name']
-
 def on_palette_click():
     clicked = st.session_state.palette
     if clicked:
@@ -77,8 +68,8 @@ def on_palette_click():
             st.session_state.owned_set = pet_selector.add_owned(st.session_state.owned_set, clicked)
         else:
             st.session_state.borrow_counts = pet_selector.inc_borrow(st.session_state.borrow_counts, clicked)
+        clear_results()
     st.session_state.palette = None
-    clear_results()
 
 # --- CONFIG UPLOAD CALLBACK (The Streamlit-Native Fix for Reversal Bug) ---
 def on_config_upload():
@@ -237,7 +228,7 @@ RANK_COLORS = {
 # Pet selector: mode toggle + search + palette pills (boxes added in Task 5)
 pets_by_name = {p['name']: p for p in all_pets}
 
-_mode_lang = st.session_state.lang  # capture before widget to avoid session_state access in format_func
+_mode_lang = st.session_state.lang  # snapshot so the label string and format_func agree this render (and to avoid st.session_state access inside format_func, which trips AppTest widget serialization)
 st.segmented_control(
     t('MY_PETS', _mode_lang) + " / " + t('BORROW_PETS', _mode_lang),
     options=['owned', 'borrow'],
@@ -265,7 +256,7 @@ with st.container(key="palette_box"):
         "palette",
         options=filtered,
         selection_mode="single",
-        format_func=lambda n: _pet_label(pets_by_name[n], with_name=True),
+        format_func=lambda n: pet_selector.pet_label(pets_by_name[n], with_name=True),
         key="palette",
         on_change=on_palette_click,
         label_visibility="collapsed",

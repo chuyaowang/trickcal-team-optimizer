@@ -54,3 +54,21 @@ def test_pet_icon_uri(tmp_path):
     p.write_bytes(b"RIFF0000WEBP")
     uri = ps.pet_icon_uri(str(p))
     assert uri.startswith("data:image/webp;base64,")
+
+
+def test_pet_label(tmp_path):
+    # No thumbnail -> falls back to the name
+    no_thumb = {"name": "Inky", "thumb": None}
+    assert ps.pet_label(no_thumb, with_name=True) == "Inky"
+    assert ps.pet_label(no_thumb, with_name=False) == "Inky"
+
+    # With a thumbnail -> markdown image, optionally followed by the name
+    p = tmp_path / "t.png"
+    p.write_bytes(b"RIFF0000WEBP")
+    pet = {"name": "Sa\"to", "thumb": str(p)}
+    icon_only = ps.pet_label(pet, with_name=False)
+    assert icon_only.startswith("![](data:image/webp;base64,")
+    assert '"Sato"' in icon_only          # quote stripped from the image title
+    assert icon_only.endswith(")")        # no trailing name
+    with_name = ps.pet_label(pet, with_name=True)
+    assert with_name.endswith(' Sa"to')   # original name preserved in the text

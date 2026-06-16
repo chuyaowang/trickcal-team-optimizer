@@ -5,6 +5,7 @@ Streamlit (which runs page setup at import time). web_gui.py imports these
 helpers for rendering and for its on_change callbacks.
 """
 import base64
+import functools
 import os
 from typing import Dict, List, Optional, Tuple
 
@@ -12,13 +13,32 @@ MAX_COPIES = 20
 _COPY_SEP = "\x00"
 
 
+@functools.lru_cache(maxsize=None)
 def pet_icon_uri(thumb_path: Optional[str]) -> Optional[str]:
-    """Base64 ``data:`` URI for a thumbnail, or None if missing/unset."""
+    """Base64 ``data:`` URI for a thumbnail, or None if missing/unset.
+
+    Cached: pills call this per option on every rerun, and thumbnails are
+    static for the life of the process.
+    """
     if not thumb_path or not os.path.exists(thumb_path):
         return None
     with open(thumb_path, "rb") as f:
         data = base64.b64encode(f.read()).decode("ascii")
     return f"data:image/webp;base64,{data}"
+
+
+def pet_label(pet: dict, with_name: bool) -> str:
+    """Markdown label for a pet pill: thumbnail image, optionally + the name.
+
+    Pure (no Streamlit) so it can be unit-tested. Falls back to the name when
+    the pet has no thumbnail.
+    """
+    uri = pet_icon_uri(pet.get("thumb"))
+    title = pet["name"].replace('"', "")
+    img = f'![]({uri} "{title}")' if uri else ""
+    if with_name:
+        return f"{img} {pet['name']}".strip()
+    return img if img else pet["name"]
 
 
 def add_owned(owned: List[str], name: str) -> List[str]:
