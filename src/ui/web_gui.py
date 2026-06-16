@@ -120,6 +120,72 @@ def get_current_config():
         st.session_state.lang,
     )
 
+@st.fragment
+def render_pet_selector(all_pets):
+    """Mode toggle + search + palette + compact owned/borrow boxes.
+
+    Lives in a fragment so a pill click reruns only this block (not the sidebar,
+    task preview, or results), keeping selection snappy. It mutates owned_set /
+    borrow_counts; the optimizer reads those on the next full rerun (Run button).
+    """
+    pets_by_name = {p['name']: p for p in all_pets}
+
+    # snapshot lang so the label string and format_func agree this render (and to
+    # avoid st.session_state access inside format_func, which trips AppTest)
+    _mode_lang = st.session_state.lang
+    st.segmented_control(
+        t('MY_PETS', _mode_lang) + " / " + t('BORROW_PETS', _mode_lang),
+        options=['owned', 'borrow'],
+        format_func=lambda m, _l=_mode_lang: t('MY_PETS', _l) if m == 'owned'
+            else t('BORROW_PETS', _l),
+        key='pet_mode',
+        on_change=clear_results,
+        label_visibility='collapsed',
+    )
+
+    search = st.text_input(t('SEARCH_PETS', st.session_state.lang), key="pet_search")
+    filtered = [p['name'] for p in all_pets if search.lower() in p['name'].lower()]
+
+    with st.container(key="palette_box"):
+        st.pills(
+            "palette",
+            options=filtered,
+            selection_mode="single",
+            format_func=lambda n: pet_selector.pet_label(pets_by_name[n], with_name=True),
+            key="palette",
+            on_change=on_palette_click,
+            label_visibility="collapsed",
+        )
+
+    box_owned, box_borrow = st.columns(2)
+    with box_owned:
+        st.caption(t('MY_PETS', st.session_state.lang))
+        with st.container(key="owned_box_wrap"):
+            st.pills(
+                "owned_box_pills",
+                # defensive: only render names the current server actually has
+                options=[n for n in st.session_state.owned_set if n in pets_by_name],
+                selection_mode="single",
+                format_func=lambda n: pet_selector.pet_label(pets_by_name[n], with_name=False),
+                key="owned_box",
+                on_change=on_owned_box_click,
+                label_visibility="collapsed",
+            )
+    with box_borrow:
+        st.caption(t('BORROW_PETS', st.session_state.lang))
+        # defensive: only expand copies for pets the current server actually has
+        _valid_borrow = {k: v for k, v in st.session_state.borrow_counts.items() if k in pets_by_name}
+        with st.container(key="borrow_box_wrap"):
+            st.pills(
+                "borrow_box_pills",
+                options=pet_selector.expand_borrow(_valid_borrow),
+                selection_mode="single",
+                format_func=lambda v: pet_selector.pet_label(pets_by_name[pet_selector.copy_value_name(v)], with_name=False),
+                key="borrow_box",
+                on_change=on_borrow_box_click,
+                label_visibility="collapsed",
+            )
+
 # --- SIDEBAR START ---
 with st.sidebar:
     st.header(t('LANGUAGE', st.session_state.lang))
@@ -246,87 +312,16 @@ RANK_COLORS = {
     "C": "#CD7F32", "D": "#A0522D", "N/A": "#F0F2F6"
 }
 
-# Pet selector: mode toggle + search + palette pills (boxes added in Task 5)
-pets_by_name = {p['name']: p for p in all_pets}
-
-_mode_lang = st.session_state.lang  # snapshot so the label string and format_func agree this render (and to avoid st.session_state access inside format_func, which trips AppTest widget serialization)
-st.segmented_control(
-    t('MY_PETS', _mode_lang) + " / " + t('BORROW_PETS', _mode_lang),
-    options=['owned', 'borrow'],
-    format_func=lambda m, _l=_mode_lang: t('MY_PETS', _l) if m == 'owned'
-        else t('BORROW_PETS', _l),
-    key='pet_mode',
-    on_change=clear_results,
-    label_visibility='collapsed',
-)
-
-mode = st.session_state.pet_mode
-tint = "#2e7d32" if mode == 'owned' else "#ef6c00"   # green / orange
+# Pet selector. The icon-size rule is injected here (outside the fragment) so it
+# persists across fragment-only reruns; the selector itself runs in a fragment.
 PILL_ICON_PX = 32  # displayed icon size; thumbnails are 96px so this stays crisp
 st.markdown(
-    f"<style>.st-key-palette_box [data-baseweb='tag'],"
-    f".st-key-palette_box button[kind='pillsActive']"
-    f"{{background-color:{tint}33;border-color:{tint};}}"
-    # enlarge the thumbnail images inside every selector pill
-    f".st-key-palette_box img,.st-key-owned_box_wrap img,.st-key-borrow_box_wrap img"
+    f"<style>.st-key-palette_box img,.st-key-owned_box_wrap img,.st-key-borrow_box_wrap img"
     f"{{height:{PILL_ICON_PX}px!important;max-height:{PILL_ICON_PX}px!important;"
     f"width:auto!important;vertical-align:middle;}}</style>",
     unsafe_allow_html=True,
 )
-
-search = st.text_input(t('SEARCH_PETS', st.session_state.lang), key="pet_search")
-filtered = [p['name'] for p in all_pets if search.lower() in p['name'].lower()]
-
-with st.container(key="palette_box"):
-    st.pills(
-        "palette",
-        options=filtered,
-        selection_mode="single",
-        format_func=lambda n: pet_selector.pet_label(pets_by_name[n], with_name=True),
-        key="palette",
-        on_change=on_palette_click,
-        label_visibility="collapsed",
-    )
-
-# Compact icon-only summary boxes (green = owned, orange = borrow)
-st.markdown(
-    "<style>"
-    ".st-key-owned_box_wrap [data-baseweb='tag']{background-color:#2e7d3233;border-color:#2e7d32;}"
-    ".st-key-borrow_box_wrap [data-baseweb='tag']{background-color:#ef6c0033;border-color:#ef6c00;}"
-    "</style>",
-    unsafe_allow_html=True,
-)
-box_owned, box_borrow = st.columns(2)
-
-with box_owned:
-    st.caption(t('MY_PETS', st.session_state.lang))
-    with st.container(key="owned_box_wrap"):
-        st.pills(
-            "owned_box_pills",
-            # defensive: only render names the current server actually has
-            options=[n for n in st.session_state.owned_set if n in pets_by_name],
-            selection_mode="single",
-            format_func=lambda n: pet_selector.pet_label(pets_by_name[n], with_name=False),
-            key="owned_box",
-            on_change=on_owned_box_click,
-            label_visibility="collapsed",
-        )
-
-with box_borrow:
-    st.caption(t('BORROW_PETS', st.session_state.lang))
-    # defensive: only expand copies for pets the current server actually has
-    _valid_borrow = {k: v for k, v in st.session_state.borrow_counts.items() if k in pets_by_name}
-    borrow_values = pet_selector.expand_borrow(_valid_borrow)
-    with st.container(key="borrow_box_wrap"):
-        st.pills(
-            "borrow_box_pills",
-            options=borrow_values,
-            selection_mode="single",
-            format_func=lambda v: pet_selector.pet_label(pets_by_name[pet_selector.copy_value_name(v)], with_name=False),
-            key="borrow_box",
-            on_change=on_borrow_box_click,
-            label_visibility="collapsed",
-        )
+render_pet_selector(all_pets)
 
 st.divider()
 run_calc = st.button(t('RUN_OPTIMIZER', st.session_state.lang), use_container_width=True, type="primary")
