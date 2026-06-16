@@ -86,6 +86,12 @@ def on_borrow_box_click():
         clear_results()
     st.session_state.borrow_box = None
 
+def on_server_change():
+    """Pet selections are server-language-specific, so reset them on switch."""
+    st.session_state.owned_set = []
+    st.session_state.borrow_counts = {}
+    clear_results()
+
 # --- CONFIG UPLOAD CALLBACK (The Streamlit-Native Fix for Reversal Bug) ---
 def on_config_upload():
     """Processes config file only when a new file is uploaded."""
@@ -137,7 +143,7 @@ with st.sidebar:
         options=server_list, 
         format_func=lambda x: server_names[x],
         key='server',
-        on_change=clear_results
+        on_change=on_server_change
     )
     
     # 2. Job File Selection
@@ -292,7 +298,8 @@ with box_owned:
     with st.container(key="owned_box_wrap"):
         st.pills(
             "owned_box_pills",
-            options=list(st.session_state.owned_set),
+            # defensive: only render names the current server actually has
+            options=[n for n in st.session_state.owned_set if n in pets_by_name],
             selection_mode="single",
             format_func=lambda n: pet_selector.pet_label(pets_by_name[n], with_name=False),
             key="owned_box",
@@ -302,7 +309,9 @@ with box_owned:
 
 with box_borrow:
     st.caption(t('BORROW_PETS', st.session_state.lang))
-    borrow_values = pet_selector.expand_borrow(st.session_state.borrow_counts)
+    # defensive: only expand copies for pets the current server actually has
+    _valid_borrow = {k: v for k, v in st.session_state.borrow_counts.items() if k in pets_by_name}
+    borrow_values = pet_selector.expand_borrow(_valid_borrow)
     with st.container(key="borrow_box_wrap"):
         st.pills(
             "borrow_box_pills",
