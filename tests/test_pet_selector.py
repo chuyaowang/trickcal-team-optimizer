@@ -47,28 +47,29 @@ def test_config_to_state_defaults_when_keys_missing():
     assert ps.config_to_state({}) == ([], {})
 
 
-def test_pet_icon_uri(tmp_path):
-    assert ps.pet_icon_uri(None) is None
-    assert ps.pet_icon_uri(str(tmp_path / "missing.png")) is None
-    p = tmp_path / "t.png"
-    p.write_bytes(b"RIFF0000WEBP")
-    uri = ps.pet_icon_uri(str(p))
-    assert uri.startswith("data:image/webp;base64,")
+def test_available_thumb_ids(tmp_path):
+    d = tmp_path / "pet_thumbs"
+    d.mkdir()
+    (d / "353924.webp").write_bytes(b"x")
+    (d / "10000.webp").write_bytes(b"x")
+    (d / "notes.txt").write_bytes(b"x")   # non-webp ignored
+    assert ps.available_thumb_ids(str(d)) == frozenset({"353924", "10000"})
+    # missing dir -> empty set (no crash)
+    assert ps.available_thumb_ids(str(tmp_path / "nope")) == frozenset()
 
 
-def test_pet_label(tmp_path):
-    # No thumbnail -> falls back to the name
-    no_thumb = {"name": "Inky", "thumb": None}
-    assert ps.pet_label(no_thumb, with_name=True) == "Inky"
-    assert ps.pet_label(no_thumb, with_name=False) == "Inky"
+def test_pet_label():
+    available = frozenset({"353924"})
 
-    # With a thumbnail -> markdown image, optionally followed by the name
-    p = tmp_path / "t.png"
-    p.write_bytes(b"RIFF0000WEBP")
-    pet = {"name": "Sa\"to", "thumb": str(p)}
-    icon_only = ps.pet_label(pet, with_name=False)
-    assert icon_only.startswith("![](data:image/webp;base64,")
-    assert '"Sato"' in icon_only          # quote stripped from the image title
-    assert icon_only.endswith(")")        # no trailing name
-    with_name = ps.pet_label(pet, with_name=True)
-    assert with_name.endswith(' Sa"to')   # original name preserved in the text
+    # Has a thumbnail -> served-URL markdown image (quote stripped from title)
+    pet = {"id": "353924", "name": 'Sa"to'}
+    assert ps.pet_label(pet, available, with_name=False) == (
+        '![](app/static/pet_thumbs/353924.webp "Sato")'
+    )
+    assert ps.pet_label(pet, available, with_name=True) == (
+        '![](app/static/pet_thumbs/353924.webp "Sato") Sa"to'
+    )
+
+    # No thumbnail for this id, or no id -> name only
+    assert ps.pet_label({"id": "999", "name": "Inky"}, available, with_name=False) == "Inky"
+    assert ps.pet_label({"id": None, "name": "Inky"}, available, with_name=True) == "Inky"

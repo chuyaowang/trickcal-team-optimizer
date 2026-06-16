@@ -4,38 +4,44 @@ Kept separate from web_gui.py so it can be unit-tested without importing
 Streamlit (which runs page setup at import time). web_gui.py imports these
 helpers for rendering and for its on_change callbacks.
 """
-import base64
 import functools
 import os
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, FrozenSet, List, Tuple
 
 MAX_COPIES = 20
 _COPY_SEP = "\x00"
 
+# Thumbnails are served as static files (Streamlit enableStaticServing) from
+# src/ui/static/pet_thumbs/<id>.webp, reachable in the browser at this prefix.
+STATIC_THUMB_URL = "app/static/pet_thumbs"
+THUMB_EXT = ".webp"
+
 
 @functools.lru_cache(maxsize=None)
-def pet_icon_uri(thumb_path: Optional[str]) -> Optional[str]:
-    """Base64 ``data:`` URI for a thumbnail, or None if missing/unset.
+def available_thumb_ids(thumb_dir: str) -> FrozenSet[str]:
+    """Pet ids that have a thumbnail file in ``thumb_dir`` (cached).
 
-    Cached: pills call this per option on every rerun, and thumbnails are
-    static for the life of the process.
+    Listed once per process (thumbnails are static); empty if the dir is absent.
     """
-    if not thumb_path or not os.path.exists(thumb_path):
-        return None
-    with open(thumb_path, "rb") as f:
-        data = base64.b64encode(f.read()).decode("ascii")
-    return f"data:image/webp;base64,{data}"
+    try:
+        names = os.listdir(thumb_dir)
+    except OSError:
+        return frozenset()
+    return frozenset(os.path.splitext(n)[0] for n in names if n.endswith(THUMB_EXT))
 
 
-def pet_label(pet: dict, with_name: bool) -> str:
-    """Markdown label for a pet pill: thumbnail image, optionally + the name.
+def pet_label(pet: dict, available_ids, with_name: bool) -> str:
+    """Markdown label for a pet pill: a served thumbnail image, optionally + name.
 
-    Pure (no Streamlit) so it can be unit-tested. Falls back to the name when
-    the pet has no thumbnail.
+    Pure (no Streamlit) so it can be unit-tested. Falls back to the name when the
+    pet's id has no thumbnail in ``available_ids``.
     """
-    uri = pet_icon_uri(pet.get("thumb"))
-    title = pet["name"].replace('"', "")
-    img = f'![]({uri} "{title}")' if uri else ""
+    pid = str(pet.get("id") or "")
+    if pid and pid in available_ids:
+        title = pet["name"].replace('"', "")
+        img = f'![]({STATIC_THUMB_URL}/{pid}{THUMB_EXT} "{title}")'
+    else:
+        img = ""
     if with_name:
         return f"{img} {pet['name']}".strip()
     return img if img else pet["name"]

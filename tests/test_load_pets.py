@@ -45,23 +45,3 @@ def test_load_pets_filters_by_server_language_and_keys(tmp_path, monkeypatch):
     # kr has no name -> pet absent
     pets_kr = csv_loader.load_pets(server="kr", data_dir=data_dir)
     assert pets_kr == []
-
-
-def test_load_pets_sets_thumb_when_present(tmp_path, monkeypatch):
-    data_dir = _write_master(tmp_path)
-    monkeypatch.setattr(vocab_loader, "_I18N_DIR", os.path.join(data_dir, "i18n"))
-    vocab_loader._load_table.cache_clear()
-    vocab_loader._reverse_table.cache_clear()
-
-    # No thumbnail file yet -> thumb is None
-    pets = csv_loader.load_pets(server="gl-en", data_dir=data_dir)
-    assert pets[0]["thumb"] is None
-
-    # Create the thumbnail -> thumb resolves to it
-    thumb_dir = os.path.join(data_dir, "pet_images", "thumbnails")
-    os.makedirs(thumb_dir, exist_ok=True)
-    thumb_path = os.path.join(thumb_dir, "148590.png")
-    with open(thumb_path, "wb") as f:
-        f.write(b"RIFF0000WEBP")  # any bytes; load_pets only checks existence
-    pets = csv_loader.load_pets(server="gl-en", data_dir=data_dir)
-    assert pets[0]["thumb"] == thumb_path

@@ -20,6 +20,10 @@ from src.core.constants import SERVER_LANG
 from src.data_loader.vocab_loader import trait_name
 from src.ui import pet_selector
 
+# Filesystem dir Streamlit serves at app/static/pet_thumbs (static/ sits next to
+# this app file). pet_selector.available_thumb_ids() lists it for icon lookups.
+THUMB_FS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "pet_thumbs")
+
 # --- CACHED DATA LOADING ---
 @st.cache_data
 def get_cached_pets(server):
@@ -129,6 +133,7 @@ def render_pet_selector(all_pets):
     borrow_counts; the optimizer reads those on the next full rerun (Run button).
     """
     pets_by_name = {p['name']: p for p in all_pets}
+    thumb_ids = pet_selector.available_thumb_ids(THUMB_FS_DIR)
 
     # snapshot lang so the label string and format_func agree this render (and to
     # avoid st.session_state access inside format_func, which trips AppTest)
@@ -151,7 +156,7 @@ def render_pet_selector(all_pets):
             "palette",
             options=filtered,
             selection_mode="single",
-            format_func=lambda n: pet_selector.pet_label(pets_by_name[n], with_name=True),
+            format_func=lambda n: pet_selector.pet_label(pets_by_name[n], thumb_ids, with_name=True),
             key="palette",
             on_change=on_palette_click,
             label_visibility="collapsed",
@@ -166,7 +171,7 @@ def render_pet_selector(all_pets):
                 # defensive: only render names the current server actually has
                 options=[n for n in st.session_state.owned_set if n in pets_by_name],
                 selection_mode="single",
-                format_func=lambda n: pet_selector.pet_label(pets_by_name[n], with_name=False),
+                format_func=lambda n: pet_selector.pet_label(pets_by_name[n], thumb_ids, with_name=False),
                 key="owned_box",
                 on_change=on_owned_box_click,
                 label_visibility="collapsed",
@@ -180,7 +185,7 @@ def render_pet_selector(all_pets):
                 "borrow_box_pills",
                 options=pet_selector.expand_borrow(_valid_borrow),
                 selection_mode="single",
-                format_func=lambda v: pet_selector.pet_label(pets_by_name[pet_selector.copy_value_name(v)], with_name=False),
+                format_func=lambda v: pet_selector.pet_label(pets_by_name[pet_selector.copy_value_name(v)], thumb_ids, with_name=False),
                 key="borrow_box",
                 on_change=on_borrow_box_click,
                 label_visibility="collapsed",
