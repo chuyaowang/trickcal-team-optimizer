@@ -31,6 +31,8 @@ import shutil
 from PIL import Image
 
 IMAGE_DIR = os.path.join("data", "pet_images")
+# Thumbnails are served statically by the web app, so they live next to it.
+THUMB_DIR = os.path.join("src", "ui", "static", "pet_thumbs")
 OUT_DIR = "/tmp/pet_std"
 MASTER_SIZE = 300
 THUMB_SIZE = 96
@@ -83,7 +85,7 @@ def main() -> None:
 
     if args.in_place:
         master_dir = IMAGE_DIR
-        thumb_dir = os.path.join(IMAGE_DIR, "thumbnails")
+        thumb_dir = THUMB_DIR
     else:
         master_dir = os.path.join(OUT_DIR, "masters")
         thumb_dir = os.path.join(OUT_DIR, "thumbnails")
@@ -106,7 +108,8 @@ def main() -> None:
         master = build_master(src, master_dst)
 
         thumb = master.resize((THUMB_SIZE, THUMB_SIZE), Image.LANCZOS)
-        thumb_dst = os.path.join(thumb_dir, name)
+        # served statically as <id>.webp (true extension -> correct content-type)
+        thumb_dst = os.path.join(thumb_dir, os.path.splitext(name)[0] + ".webp")
         save_webp(thumb, thumb_dst, THUMB_QUALITY)
 
         out_kb = os.path.getsize(master_dst) / 1024

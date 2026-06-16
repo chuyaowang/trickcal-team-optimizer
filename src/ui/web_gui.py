@@ -18,6 +18,11 @@ from src.core.i18n import t
 from src.core.analytics import track_visit
 from src.core.constants import SERVER_LANG
 from src.data_loader.vocab_loader import trait_name
+from src.ui import pet_selector
+
+# Filesystem dir Streamlit serves at app/static/pet_thumbs (static/ sits next to
+# this app file). pet_selector.available_thumb_ids() lists it for icon lookups.
+THUMB_FS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "pet_thumbs")
 
 # --- CACHED DATA LOADING ---
 @st.cache_data
@@ -45,6 +50,12 @@ if 'server' not in st.session_state:
     st.session_state.server = 'cn'
 if 'p_limit' not in st.session_state:
     st.session_state.p_limit = 5
+if 'owned_set' not in st.session_state:
+    st.session_state.owned_set = []
+if 'borrow_counts' not in st.session_state:
+    st.session_state.borrow_counts = {}
+if 'pet_mode' not in st.session_state:
+    st.session_state.pet_mode = 'owned'
 if 'msg_success' not in st.session_state:
     st.session_state.msg_success = False
 if 'msg_error' not in st.session_state:
@@ -54,6 +65,37 @@ def clear_results():
     """Clears the cached calculation result when any input parameter changes."""
     st.session_state.calc_result = None
 
+def on_palette_click():
+    clicked = st.session_state.palette
+    if clicked:
+        if st.session_state.pet_mode == 'owned':
+            st.session_state.owned_set = pet_selector.add_owned(st.session_state.owned_set, clicked)
+        else:
+            st.session_state.borrow_counts = pet_selector.inc_borrow(st.session_state.borrow_counts, clicked)
+        clear_results()
+    st.session_state.palette = None
+
+def on_owned_box_click():
+    clicked = st.session_state.owned_box
+    if clicked:
+        st.session_state.owned_set = pet_selector.remove_owned(st.session_state.owned_set, clicked)
+        clear_results()
+    st.session_state.owned_box = None
+
+def on_borrow_box_click():
+    clicked = st.session_state.borrow_box
+    if clicked:
+        name = pet_selector.copy_value_name(clicked)
+        st.session_state.borrow_counts = pet_selector.dec_borrow(st.session_state.borrow_counts, name)
+        clear_results()
+    st.session_state.borrow_box = None
+
+def on_server_change():
+    """Pet selections are server-language-specific, so reset them on switch."""
+    st.session_state.owned_set = []
+    st.session_state.borrow_counts = {}
+    clear_results()
+
 # --- CONFIG UPLOAD CALLBACK (The Streamlit-Native Fix for Reversal Bug) ---
 def on_config_upload():
     """Processes config file only when a new file is uploaded."""
@@ -61,23 +103,12 @@ def on_config_upload():
     if uploaded_file is not None:
         try:
             config = json.load(uploaded_file)
-            
-            # Reset existing pet selections to prevent "merging" configs
-            for key in list(st.session_state.keys()):
-                if key.startswith("chk_"):
-                    st.session_state[key] = False
-                elif key.startswith("num_"):
-                    st.session_state[key] = 0
-
-            # Safe to update these because the widgets haven't rendered yet in this run
+            owned, counts = pet_selector.config_to_state(config)
+            st.session_state.owned_set = owned
+            st.session_state.borrow_counts = counts
             st.session_state.server = config.get('server', st.session_state.server)
             st.session_state.p_limit = config.get('max_job_number', st.session_state.p_limit)
             st.session_state.lang = config.get('ui_language', st.session_state.lang)
-            
-            for pet_name in config.get('owned_pets', []):
-                st.session_state[f"chk_{pet_name}"] = True
-            for pet_name, count in config.get('aux_pets_counts', {}).items():
-                st.session_state[f"num_{pet_name}"] = count
             st.session_state.msg_success = True
             clear_results()
         except Exception as e:
@@ -85,15 +116,80 @@ def on_config_upload():
 
 # --- HELPER: GET CURRENT CONFIG ---
 def get_current_config():
-    owned = [k.replace("chk_", "") for k, v in st.session_state.items() if k.startswith("chk_") and v]
-    aux = {k.replace("num_", ""): v for k, v in st.session_state.items() if k.startswith("num_") and v > 0}
-    return {
-        "server": st.session_state.server,
-        "max_job_number": st.session_state.p_limit,
-        "owned_pets": owned,
-        "aux_pets_counts": aux,
-        "ui_language": st.session_state.lang
-    }
+    return pet_selector.state_to_config(
+        st.session_state.owned_set,
+        st.session_state.borrow_counts,
+        st.session_state.server,
+        st.session_state.p_limit,
+        st.session_state.lang,
+    )
+
+@st.fragment
+def render_pet_selector(all_pets):
+    """Mode toggle + search + palette + compact owned/borrow boxes.
+
+    Lives in a fragment so a pill click reruns only this block (not the sidebar,
+    task preview, or results), keeping selection snappy. It mutates owned_set /
+    borrow_counts; the optimizer reads those on the next full rerun (Run button).
+    """
+    pets_by_name = {p['name']: p for p in all_pets}
+    thumb_ids = pet_selector.available_thumb_ids(THUMB_FS_DIR)
+
+    # snapshot lang so the label string and format_func agree this render (and to
+    # avoid st.session_state access inside format_func, which trips AppTest)
+    _mode_lang = st.session_state.lang
+    st.segmented_control(
+        t('MY_PETS', _mode_lang) + " / " + t('BORROW_PETS', _mode_lang),
+        options=['owned', 'borrow'],
+        format_func=lambda m, _l=_mode_lang: t('MY_PETS', _l) if m == 'owned'
+            else t('BORROW_PETS', _l),
+        key='pet_mode',
+        on_change=clear_results,
+        label_visibility='collapsed',
+    )
+
+    search = st.text_input(t('SEARCH_PETS', st.session_state.lang), key="pet_search")
+    filtered = [p['name'] for p in all_pets if search.lower() in p['name'].lower()]
+
+    with st.container(key="palette_box"):
+        st.pills(
+            "palette",
+            options=filtered,
+            selection_mode="single",
+            format_func=lambda n: pet_selector.pet_label(pets_by_name[n], thumb_ids, with_name=True),
+            key="palette",
+            on_change=on_palette_click,
+            label_visibility="collapsed",
+        )
+
+    box_owned, box_borrow = st.columns(2)
+    with box_owned:
+        st.caption(t('MY_PETS', st.session_state.lang))
+        with st.container(key="owned_box_wrap"):
+            st.pills(
+                "owned_box_pills",
+                # defensive: only render names the current server actually has
+                options=[n for n in st.session_state.owned_set if n in pets_by_name],
+                selection_mode="single",
+                format_func=lambda n: pet_selector.pet_label(pets_by_name[n], thumb_ids, with_name=False),
+                key="owned_box",
+                on_change=on_owned_box_click,
+                label_visibility="collapsed",
+            )
+    with box_borrow:
+        st.caption(t('BORROW_PETS', st.session_state.lang))
+        # defensive: only expand copies for pets the current server actually has
+        _valid_borrow = {k: v for k, v in st.session_state.borrow_counts.items() if k in pets_by_name}
+        with st.container(key="borrow_box_wrap"):
+            st.pills(
+                "borrow_box_pills",
+                options=pet_selector.expand_borrow(_valid_borrow),
+                selection_mode="single",
+                format_func=lambda v: pet_selector.pet_label(pets_by_name[pet_selector.copy_value_name(v)], thumb_ids, with_name=False),
+                key="borrow_box",
+                on_change=on_borrow_box_click,
+                label_visibility="collapsed",
+            )
 
 # --- SIDEBAR START ---
 with st.sidebar:
@@ -118,7 +214,7 @@ with st.sidebar:
         options=server_list, 
         format_func=lambda x: server_names[x],
         key='server',
-        on_change=clear_results
+        on_change=on_server_change
     )
     
     # 2. Job File Selection
@@ -221,46 +317,23 @@ RANK_COLORS = {
     "C": "#CD7F32", "D": "#A0522D", "N/A": "#F0F2F6"
 }
 
-col_owned, col_aux = st.columns(2)
-
-with col_owned:
-    st.subheader(t('MY_PETS', st.session_state.lang))
-    owned_search = st.text_input(t('SEARCH_PETS', st.session_state.lang), key="owned_search")
-    
-    with st.expander(t('EXPAND_PET_LIST', st.session_state.lang), expanded=True):
-        filtered_owned = [
-            p for p in all_pets 
-            if owned_search.lower() in p['name'].lower() or st.session_state.get(f"chk_{p['name']}", False)
-        ]
-        
-        o_cols = st.columns(2)
-        for i, pet in enumerate(filtered_owned):
-            name = pet['name']
-            with o_cols[i % 2]:
-                st.checkbox(f"{name}", key=f"chk_{name}", on_change=clear_results)
-
-with col_aux:
-    st.subheader(t('BORROW_PETS', st.session_state.lang))
-    aux_search = st.text_input(t('SEARCH_PETS', st.session_state.lang) + " ", key="aux_search")
-    
-    with st.expander(t('SET_BORROW_COPIES', st.session_state.lang), expanded=True):
-        filtered_aux = [
-            p for p in all_pets 
-            if aux_search.lower() in p['name'].lower() or st.session_state.get(f"num_{p['name']}", 0) > 0
-        ]
-        
-        cols = st.columns(3)
-        for i, pet in enumerate(filtered_aux):
-            name = pet['name']
-            with cols[i % 3]:
-                st.number_input(f"{name}", min_value=0, max_value=20, step=1, key=f"num_{name}", on_change=clear_results)
+# Pet selector. The icon-size rule is injected here (outside the fragment) so it
+# persists across fragment-only reruns; the selector itself runs in a fragment.
+PILL_ICON_PX = 32  # displayed icon size; thumbnails are 96px so this stays crisp
+st.markdown(
+    f"<style>.st-key-palette_box img,.st-key-owned_box_wrap img,.st-key-borrow_box_wrap img"
+    f"{{height:{PILL_ICON_PX}px!important;max-height:{PILL_ICON_PX}px!important;"
+    f"width:auto!important;vertical-align:middle;}}</style>",
+    unsafe_allow_html=True,
+)
+render_pet_selector(all_pets)
 
 st.divider()
 run_calc = st.button(t('RUN_OPTIMIZER', st.session_state.lang), use_container_width=True, type="primary")
 
 if run_calc:
-    owned_pet_names = [k.replace("chk_", "") for k, v in st.session_state.items() if k.startswith("chk_") and v]
-    aux_pets_counts = {k.replace("num_", ""): v for k, v in st.session_state.items() if k.startswith("num_") and v > 0}
+    owned_pet_names = list(st.session_state.owned_set)
+    aux_pets_counts = {k: v for k, v in st.session_state.borrow_counts.items() if v > 0}
     
     if not owned_pet_names:
         st.warning(t('SELECT_OWNED_WARNING', st.session_state.lang))

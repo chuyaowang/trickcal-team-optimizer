@@ -11,3 +11,7 @@ toolbarMode = "minimal"
 
 [browser]
 gatherUsageStats = false
+
+[server]
+# serve pet thumbnails from src/ui/static/ at app/static/... (pet pill icons)
+enableStaticServing = true
