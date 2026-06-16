@@ -262,10 +262,15 @@ st.segmented_control(
 
 mode = st.session_state.pet_mode
 tint = "#2e7d32" if mode == 'owned' else "#ef6c00"   # green / orange
+PILL_ICON_PX = 32  # displayed icon size; thumbnails are 96px so this stays crisp
 st.markdown(
     f"<style>.st-key-palette_box [data-baseweb='tag'],"
     f".st-key-palette_box button[kind='pillsActive']"
-    f"{{background-color:{tint}33;border-color:{tint};}}</style>",
+    f"{{background-color:{tint}33;border-color:{tint};}}"
+    # enlarge the thumbnail images inside every selector pill
+    f".st-key-palette_box img,.st-key-owned_box_wrap img,.st-key-borrow_box_wrap img"
+    f"{{height:{PILL_ICON_PX}px!important;max-height:{PILL_ICON_PX}px!important;"
+    f"width:auto!important;vertical-align:middle;}}</style>",
     unsafe_allow_html=True,
 )
 
