@@ -42,9 +42,9 @@ TRANSLATIONS = {
         'WAITING': "Waiting for input...",
         'PROGRESS': "Calculating",
         'SERVER_NAMES': {
-            'cn': "China Server (CN)",
             'gl-cn': "Global Server (GL-CN)",
             'gl-en': "Global Server (GL-EN)",
+            'cn': "China Server (CN)",
             'kr': "Korea Server (KR) (Not supported yet)"
         }
     },
@@ -89,9 +89,9 @@ TRANSLATIONS = {
         'WAITING': "等待输入...",
         'PROGRESS': "正在计算",
         'SERVER_NAMES': {
-            'cn': "中国服 (CN)",
             'gl-cn': "国际服 (GL-CN)",
             'gl-en': "国际服 (GL-EN)",
+            'cn': "中国服 (CN)",
             'kr': "韩服 (KR) (暂不支持)"
         }
     }

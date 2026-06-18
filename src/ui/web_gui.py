@@ -47,7 +47,7 @@ track_visit()
 if 'lang' not in st.session_state:
     st.session_state.lang = 'cn'
 if 'server' not in st.session_state:
-    st.session_state.server = 'cn'
+    st.session_state.server = 'gl-cn'
 if 'p_limit' not in st.session_state:
     st.session_state.p_limit = 5
 if 'owned_set' not in st.session_state:
