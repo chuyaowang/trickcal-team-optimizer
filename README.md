@@ -34,7 +34,6 @@ Click [this link](https://trickcal-pet-dispatcher.streamlit.app/) to use the onl
 
 ## Development Roadmap
 
-- Add pet icons to the web UI
 - Add support for the JP server
 
 ---
