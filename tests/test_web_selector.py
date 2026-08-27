@@ -36,7 +36,13 @@ from streamlit.testing.v1 import AppTest
 
 from src.data_loader.csv_loader import load_pets
 
-APP = "src/ui/web_gui.py"
+# Relative to this file, not the repo root: Streamlit <1.61 resolved a
+# relative AppTest.from_file() path against the process's cwd first (which
+# happened to be the repo root under pytest, so a repo-root-relative path
+# worked); >=1.61 dropped that and always resolves against the file that
+# calls from_file() -- i.e. this one, in tests/. A path relative to here
+# resolves correctly under both.
+APP = "../src/ui/web_gui.py"
 
 
 def _workaround_none_valued_button_groups(at):
