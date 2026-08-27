@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render a line chart of daily unique visitors from GoatCounter.
+"""Render a line chart of cumulative visitors from GoatCounter.
 
 Fetches the full visitor history via the GoatCounter stats API and writes an
 SVG line chart to assets/visitors.svg. Intended to run in CI; configured via
@@ -48,11 +48,14 @@ def fetch_total():
 
 
 def build_series(stats):
-    """Return (days, counts) covering only the range that has visitor data.
+    """Return (days, cumulative) covering only the range that has visitor data.
 
     GoatCounter returns every day in the requested window, including zero-visit
     days, so we anchor the range to the first and last days that actually have
-    visitors and zero-fill any gaps in between for a continuous line.
+    visitors and zero-fill any gaps in between for a continuous line. Daily
+    counts are then rolled into a running total, so day D's value is all
+    visits from the first tracked day through D (zero-visit days keep the
+    line flat).
     """
     by_day = {
         datetime.strptime(s["day"], "%Y-%m-%d").date(): int(s.get("daily", 0))
@@ -62,22 +65,23 @@ def build_series(stats):
     if not data_days:
         return [], []
     start, end = min(data_days), max(data_days)
-    days, counts = [], []
+    days, cumulative = [], []
+    running_total = 0
     cur = start
     while cur <= end:
+        running_total += by_day.get(cur, 0)
         days.append(cur)
-        counts.append(by_day.get(cur, 0))
+        cumulative.append(running_total)
         cur += timedelta(days=1)
-    return days, counts
+    return days, cumulative
 
 
-def render(days, counts, total):
+def render(days, cumulative, total):
     fig, ax = plt.subplots(figsize=(9, 3.2), dpi=120)
 
     if days:
-        ax.plot(days, counts, color="#f4900c", linewidth=2,
-                marker="o", markersize=4)
-        ax.fill_between(days, counts, color="#f4900c", alpha=0.15)
+        ax.plot(days, cumulative, color="#f4900c", linewidth=2)
+        ax.fill_between(days, cumulative, color="#f4900c", alpha=0.15)
         # Anchor to the first data day; pad the right out to MIN_SPAN_DAYS so a
         # sparse chart spans a few months instead of being cramped. Once data
         # covers more than that span, the axis just follows the data.
@@ -92,7 +96,7 @@ def render(days, counts, total):
         ax.set_xticks([])
 
     ax.set_ylim(bottom=0)
-    ax.set_ylabel("Unique visitors / day")
+    ax.set_ylabel("Cumulative visitors")
     ax.set_title(f"App visitors over time  ·  {total} total", loc="left",
                  fontsize=12, fontweight="bold")
     ax.grid(True, axis="y", linestyle="--", alpha=0.3)
@@ -110,8 +114,9 @@ def main():
         print("GOATCOUNTER_TOKEN is not set", file=sys.stderr)
         return 1
     data = fetch_total()
-    days, counts = build_series(data.get("stats", []))
-    render(days, counts, data.get("total", sum(counts)))
+    days, cumulative = build_series(data.get("stats", []))
+    total = data.get("total", cumulative[-1] if cumulative else 0)
+    render(days, cumulative, total)
     return 0
 
 
