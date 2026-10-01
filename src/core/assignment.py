@@ -124,11 +124,11 @@ def calculate_best_assignment(
     min_total = 0
     max_total = 0
     for j in jobs:
-        if pulp.value(y[j]) == 1:
+        if round(pulp.value(y[j])) == 1:
             team = []
             job_score = 0
             for w in all_workers:
-                if pulp.value(x[w, j]) == 1:
+                if round(pulp.value(x[w, j])) == 1:
                     base_name = npc_identity[w]
                     team.append({
                         'name': base_name,
@@ -151,8 +151,8 @@ def calculate_best_assignment(
         'total': float(pulp.value(prob.objective)),
         'min_total': min_total,
         'max_total': max_total,
-        'borrowed': int(sum(pulp.value(x[w, j]) for w in aux_workers for j in jobs)),
-        'total_pets': int(sum(pulp.value(x[w, j]) for w in all_workers for j in jobs)),
+        'borrowed': round(sum(pulp.value(x[w, j]) for w in aux_workers for j in jobs)),
+        'total_pets': round(sum(pulp.value(x[w, j]) for w in all_workers for j in jobs)),
         'assignments': assignments,
         'status': 'Optimal'
     }
