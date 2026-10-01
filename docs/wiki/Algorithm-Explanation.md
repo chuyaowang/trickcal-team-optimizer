@@ -14,8 +14,8 @@ where $v_{j,t}$ is a binary variable that is 1 if job $j$ achieves reward tier $
 
 When multiple combinations yield the same reward, the solver uses these weighted penalties to break ties in order of importance:
 
-1. **Minimize Team Size**: The base penalty (0.0001) ensures that if a pet doesn't push the score to the next tier, it will be left unassigned.
-2. **Prioritize Owned Pets**: Borrowed pets have a slightly higher penalty (0.00011 vs 0.0001). This ensures that if the same tier can be reached with either an owned pet or a borrowed pet, the solver will always prefer the owned one.
+1. **Prioritize Owned Pets**: Borrowed pets have a much higher penalty (0.01 vs 0.0001), so one borrowed pet costs as much as 100 owned pets. This ensures that if the same reward can be reached without borrowing, the solver will always prefer owned pets, even if that means a larger team.
+2. **Minimize Team Size**: The base penalty (0.0001) ensures that if a pet doesn't push the score to the next tier, it will be left unassigned.
 
 ## Decision Variables
 
