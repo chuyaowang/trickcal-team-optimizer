@@ -35,4 +35,38 @@ When multiple combinations yield the same reward, the solver uses these weighted
 
 ## Solver Implementation
 
-The logic is implemented using the `PuLP` library in Python, which interfaces with the CBC solver to find the optimal assignment in a fraction of a second.
+The logic is implemented using the `PuLP` library in Python, which builds the model and hands it to the open-source **CBC** (COIN-OR Branch and Cut) solver. CBC finds and proves the optimal assignment in a fraction of a second.
+
+### Why Integer Variables Matter
+
+All decision variables are declared with `cat='Binary'`, which tells the solver that each one must be exactly 0 or 1. Without this requirement the problem becomes an ordinary linear program (LP), whose "best" answer could be meaningless, e.g. assigning 0.4 of one pet and 0.6 of another to a job. CBC combines the following techniques to find the best whole-number answer.
+
+### 1. LP Relaxation
+
+CBC first solves the **LP relaxation**: the same objective and constraints, but every variable may take any value between 0 and 1. LPs solve very quickly. Because the relaxation allows more freedom than the real problem, its objective value is an **upper bound**: no real assignment can earn more. If every variable already happens to be 0 or 1, that solution is optimal and CBC is done.
+
+### 2. Branch-and-Bound
+
+Otherwise, CBC picks a fractional variable, say $x_{w,j} = 0.4$, and splits the problem into two subproblems: one with $x_{w,j} = 0$ and one with $x_{w,j} = 1$. Each subproblem is solved as an LP again, and the splitting repeats, forming a search tree:
+
+```mermaid
+graph TD
+    R["Root LP: bound = 120<br/>x(A,1) = 0.4"] -->|"x(A,1) = 0"| L["LP bound = 112<br/>all integer ✔<br/>best so far = 112"]
+    R -->|"x(A,1) = 1"| Rt["LP bound = 118<br/>y(3) = 0.5"]
+    Rt -->|"y(3) = 0"| P["LP bound = 110<br/>✘ pruned: cannot beat 112"]
+    Rt -->|"y(3) = 1"| B["LP bound = 116<br/>all integer ✔<br/>new best = 116"]
+```
+
+*(Illustrative numbers.)* Whenever a branch's LP bound is no better than the best whole-number solution found so far, the branch is **pruned**: nothing below it can win. This is what lets CBC avoid enumerating every possible team combination.
+
+### 3. Cutting Planes
+
+To shrink the tree further, CBC adds **cuts**: extra linear inequalities that every valid whole-number assignment satisfies, but that the current fractional LP solution violates. A cut removes the fractional point without removing any real assignment, so the LP bound gets tighter and fewer branches are needed. CBC generates cuts automatically, mainly by rounding the coefficients of existing constraints and by spotting logical implications between variables (e.g. "these pets can't all be on the same team" or "this tier is only reachable if pet A is on the team").
+
+**Example from this model:** suppose a tier requires a score of 45, and the only useful pets score A = 30, B = 20 and C = 20. Every real team that reaches 45 must include A, since B + C is only 40. But the LP relaxation can claim the tier with $x_A = 0.5$ and $x_B = x_C = 1$: the score is 15 + 20 + 20 = 55 ≥ 45 with a "team size" of 2.5 ≤ 3. The cut $v_{j,t} \le x_{A,j}$ holds for every real team but rules out this fractional one.
+
+### 4. Proven Optimality
+
+CBC stops when no unexplored branch has a bound better than the best whole-number solution found. At that point the solution is **proven** globally optimal, and PuLP reports the status `Optimal`. This is the key difference from greedy or heuristic approaches: the result is guaranteed to be the best possible assignment under the given constraints. If the status is anything else, the app returns an empty result.
+
+> **Tip:** To watch the solver work, change `msg=0` to `msg=1` in the `PULP_CBC_CMD(...)` call in `src/core/assignment.py`. CBC will then print the root LP bound, how many cuts each generator added, and the branch-and-bound progress.
