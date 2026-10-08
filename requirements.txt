@@ -1,4 +1,4 @@
 pandas
-pulp
+pulp>=3,<4
 streamlit>=1.39.0
 pre-commit
