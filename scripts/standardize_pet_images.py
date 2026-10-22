@@ -13,8 +13,10 @@ Rules:
     when needed, and saved as WebP at MASTER_QUALITY.
   * Thumbnails are THUMB_SIZE WebP at THUMB_QUALITY, generated for every icon.
 
-Files keep their .png extension to match the csv `<id>.png` references and the
-existing data set; the bytes are WebP, exactly like the current 48 icons.
+Masters are always written as `<id>.png` to match the csv `<id>.png` references
+and the existing data set; the bytes are WebP, exactly like the current 48 icons.
+New icons may be dropped in as .png/.jpg/.jpeg/.webp; with --in-place the
+non-.png original is removed once its `<id>.png` master is written.
 
 By default output goes to a scratch OUT_DIR so it can be inspected WITHOUT
 touching originals. Pass --in-place to write into data/pet_images once verified.
@@ -24,9 +26,9 @@ touching originals. Pass --in-place to write into data/pet_images once verified.
 """
 
 import argparse
-import glob
 import os
 import shutil
+import sys
 
 from PIL import Image
 
@@ -39,6 +41,23 @@ THUMB_SIZE = 96
 MASTER_QUALITY = 90
 THUMB_QUALITY = 85
 WEBP_METHOD = 6  # 0-6, higher = slower/smaller
+SOURCE_EXTS = (".png", ".jpg", ".jpeg", ".webp")
+
+
+def find_sources(image_dir: str) -> list:
+    """Return sorted source icon paths; exit if two files share an id."""
+    by_id = {}
+    for name in sorted(os.listdir(image_dir)):
+        stem, ext = os.path.splitext(name)
+        if ext.lower() in SOURCE_EXTS:
+            by_id.setdefault(stem, []).append(os.path.join(image_dir, name))
+    clashes = {stem: srcs for stem, srcs in by_id.items() if len(srcs) > 1}
+    if clashes:
+        for stem, srcs in clashes.items():
+            print(f"ERROR: multiple images for id {stem}: "
+                  f"{', '.join(os.path.basename(s) for s in srcs)}")
+        sys.exit("Remove the duplicates and re-run.")
+    return [srcs[0] for _, srcs in sorted(by_id.items())]
 
 
 def is_webp(path: str) -> bool:
@@ -92,7 +111,7 @@ def main() -> None:
     os.makedirs(master_dir, exist_ok=True)
     os.makedirs(thumb_dir, exist_ok=True)
 
-    paths = sorted(glob.glob(os.path.join(IMAGE_DIR, "*.png")))
+    paths = find_sources(IMAGE_DIR)
     mode = "IN-PLACE" if args.in_place else f"DRY-RUN -> {OUT_DIR}"
     print(f"[{mode}] {len(paths)} icon(s) -> {MASTER_SIZE}px WebP master "
           f"(q{MASTER_QUALITY}), {THUMB_SIZE}px WebP thumb (q{THUMB_QUALITY})\n")
@@ -100,16 +119,22 @@ def main() -> None:
     reencoded = 0
     for src in paths:
         name = os.path.basename(src)
-        src_dims = Image.open(src).size
+        stem, ext = os.path.splitext(name)
+        with Image.open(src) as probe:
+            src_dims = probe.size
+            src_format = probe.format
         src_kb = os.path.getsize(src) / 1024
         was_webp = is_webp(src)
 
-        master_dst = os.path.join(master_dir, name)
+        # masters are always <id>.png (WebP bytes) to match the csv references
+        master_dst = os.path.join(master_dir, stem + ".png")
         master = build_master(src, master_dst)
+        if args.in_place and ext != ".png":
+            os.remove(src)
 
         thumb = master.resize((THUMB_SIZE, THUMB_SIZE), Image.LANCZOS)
         # served statically as <id>.webp (true extension -> correct content-type)
-        thumb_dst = os.path.join(thumb_dir, os.path.splitext(name)[0] + ".webp")
+        thumb_dst = os.path.join(thumb_dir, stem + ".webp")
         save_webp(thumb, thumb_dst, THUMB_QUALITY)
 
         out_kb = os.path.getsize(master_dst) / 1024
@@ -119,7 +144,7 @@ def main() -> None:
             print(f"  {name:>14}  kept ({out_kb:5.1f}KB)  thumb {thumb_kb:4.1f}KB")
         else:
             reencoded += 1
-            tag = "" if was_webp else " [was PNG]"
+            tag = "" if was_webp else f" [was {src_format}]"
             print(f"  {name:>14}  {src_dims[0]}x{src_dims[1]} {src_kb:6.1f}KB "
                   f"-> WebP {MASTER_SIZE}sq {out_kb:5.1f}KB  "
                   f"thumb {thumb_kb:4.1f}KB{tag}")
