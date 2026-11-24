@@ -6,7 +6,7 @@ from src.data_loader.csv_loader import load_pets, load_missions, get_available_m
 from src.core.scoring import precompute_pet_task_scores, get_reward_level
 from src.core.assignment import calculate_best_assignment
 from src.core.constants import SKILL_SCORE_MAP, SERVER_LANG, normalize_server
-from src.core.i18n import t
+from src.core.i18n import t, UI_LANGUAGE_NAMES
 from src.ui.cli import (
     select_server, select_job_file, show_pets, 
     select_owned_pets, select_farm_pets, select_task_count, 
@@ -66,16 +66,17 @@ def run_config(config_path, lang='cn'):
 def main():
     parser = argparse.ArgumentParser(description="Pet Dispatch Optimizer (MILP)")
     parser.add_argument("--config", type=str, help="Path to config (.json)")
-    parser.add_argument("--lang", type=str, choices=['cn', 'en'], help="UI Language")
+    parser.add_argument("--lang", type=str, choices=list(UI_LANGUAGE_NAMES), help="UI Language")
     args = parser.parse_args()
 
     # Determine language
     lang = args.lang
     if not lang:
-        print("1. 简体中文")
-        print("2. English")
-        choice = input("Select Language (default 1): ")
-        lang = 'en' if choice == '2' else 'cn'
+        langs = list(UI_LANGUAGE_NAMES)
+        for i, code in enumerate(langs, 1):
+            print(f"{i}. {UI_LANGUAGE_NAMES[code]}")
+        choice = input("Select Language (default 1): ").strip()
+        lang = langs[int(choice) - 1] if choice in {str(i) for i in range(1, len(langs) + 1)} else langs[0]
 
     if args.config:
         run_config(args.config, lang)

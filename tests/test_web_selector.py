@@ -109,3 +109,12 @@ def test_gl_jp_server_renders():
     [r for r in at.radio if r.key == "server"][0].set_value("gl-jp").run(timeout=60)
     assert not at.exception, at.exception
     assert at.session_state["server"] == "gl-jp"
+
+
+def test_japanese_ui_language_renders():
+    from src.core.i18n import t
+    at = AppTest.from_file(APP).run(timeout=60)
+    _workaround_none_valued_button_groups(at)
+    [r for r in at.radio if r.key == "lang"][0].set_value("jp").run(timeout=60)
+    assert not at.exception, at.exception
+    assert at.title[0].value == t('APP_TITLE', 'jp')

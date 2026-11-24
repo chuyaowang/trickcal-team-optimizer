@@ -14,7 +14,7 @@ if project_root not in sys.path:
 from src.data_loader.csv_loader import load_pets, load_missions, get_available_mission_files
 from src.core.scoring import precompute_pet_task_scores, get_reward_level, get_carrot_reward, format_reward_range
 from src.core.assignment import calculate_best_assignment
-from src.core.i18n import t
+from src.core.i18n import t, UI_LANGUAGE_NAMES
 from src.core.analytics import track_visit
 from src.core.constants import SERVER_LANG, DEFAULT_SERVER, normalize_server
 from src.data_loader.vocab_loader import trait_name
@@ -197,8 +197,8 @@ with st.sidebar:
     st.radio(
         t('LANGUAGE', st.session_state.lang), 
         label_visibility="collapsed",
-        options=["cn", "en"], 
-        format_func=lambda x: "简体中文" if x == "cn" else "English",
+        options=list(UI_LANGUAGE_NAMES),
+        format_func=lambda x: UI_LANGUAGE_NAMES[x],
         key='lang',
         horizontal=True
     )
@@ -247,10 +247,7 @@ with st.sidebar:
     
     # 4. Configuration Management
     st.header(t('CONFIG_MGMT', st.session_state.lang))
-    if st.session_state.lang == 'cn':
-        st.info("💡 可跳过：上传之前保存的 .json 配置文件（按键在底部），可快速恢复设置。")
-    else:
-        st.info("💡 Optional: Upload a previously saved (button below) .json config to instantly restore settings.")
+    st.info(t('CONFIG_HINT', st.session_state.lang))
 
     # Load Config (Using callback to fix reversal bug)
     st.file_uploader(
@@ -385,7 +382,7 @@ if st.session_state.get('calc_result'):
             carrot_reward = get_carrot_reward(score)
             
             bg_color = rank_color(reward_level)
-            borrow_tag = " (借)" if st.session_state.lang == 'cn' else " (Borrow)"
+            borrow_tag = t('BORROW_TAG', st.session_state.lang)
             pet_list_str = ", ".join([f"{p['name']}{borrow_tag if p['is_borrowed'] else ''}" for p in team])
             bonus_str = ", ".join(trait_name(k, data_lang) for k in task['bonus_skills'])
 

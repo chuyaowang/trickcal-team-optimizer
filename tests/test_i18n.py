@@ -24,3 +24,18 @@ def test_nested_server_names():
     # Chinese server names
     cn_servers = t('SERVER_NAMES', 'cn')
     assert list(cn_servers) == ['gl-cn', 'gl-en', 'gl-jp', 'kr']
+
+
+def test_every_ui_language_has_the_same_strings():
+    from src.core.i18n import TRANSLATIONS
+    assert set(TRANSLATIONS) == {'en', 'cn', 'jp'}
+    keys = set(TRANSLATIONS['en'])
+    for lang, strings in TRANSLATIONS.items():
+        assert set(strings) == keys, lang
+        assert set(strings['SERVER_NAMES']) == set(TRANSLATIONS['en']['SERVER_NAMES']), lang
+
+
+def test_japanese_ui_strings():
+    assert t('BORROW_TAG', 'jp') == ' (レンタル)'
+    assert t('BORROW_TAG', 'cn') == ' (借)'
+    assert t('SERVER_NAMES', 'jp')['gl-jp'] == 'グローバル版 (GL-JP)'

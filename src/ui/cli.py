@@ -142,7 +142,7 @@ def display_results(result: Dict, server: str, lang='cn', calc_time: float = 0.0
         print(f"\n--- {t('STATUS', lang)} {i} ---")
         print(f"{t('TASK_NAME', lang)}: {task['task']}")
         
-        borrow_tag = " (借)" if lang == 'cn' else " (Borrow)"
+        borrow_tag = t('BORROW_TAG', lang)
         pet_names = [f"{pet['name']}{borrow_tag if pet.get('is_borrowed', False) else ''}" for pet in team]
         print(f"{t('DISPATCH_TEAM', lang)}: {', '.join(pet_names)}")
         print(f"{t('RAW_SCORE', lang)}: {score} -> {reward_level} ({carrot_reward} 🥕)")

@@ -1,5 +1,8 @@
 # Internationalization (i18n) strings for the project
 
+# UI language code -> its own display name (selector order)
+UI_LANGUAGE_NAMES = {'cn': "简体中文", 'en': "English", 'jp': "日本語"}
+
 TRANSLATIONS = {
     'en': {
         'APP_TITLE': "🐾 Globally Optimal Pet Dispatch Team Planner",
@@ -37,7 +40,9 @@ TRANSLATIONS = {
         'TASK_NAME': "Task",
         'TASK_PREVIEW': "📋 Task List Preview",
         'VIEW_ON_GITHUB': "View code on GitHub",
-        'LANGUAGE': "UI Language / 界面语言",
+        'LANGUAGE': "UI Language / 界面语言 / 表示言語",
+        'CONFIG_HINT': "💡 Optional: Upload a previously saved (button below) .json config to instantly restore settings.",
+        'BORROW_TAG': " (Borrow)",
         'STATUS': "Dispatch",
         'WAITING': "Waiting for input...",
         'PROGRESS': "Calculating",
@@ -84,7 +89,9 @@ TRANSLATIONS = {
         'TASK_NAME': "任务",
         'TASK_PREVIEW': "📋 任务列表",
         'VIEW_ON_GITHUB': "在GitHub上查看代码",
-        'LANGUAGE': "UI Language / 界面语言",
+        'LANGUAGE': "UI Language / 界面语言 / 表示言語",
+        'CONFIG_HINT': "💡 可跳过：上传之前保存的 .json 配置文件（按键在底部），可快速恢复设置。",
+        'BORROW_TAG': " (借)",
         'STATUS': "派遣",
         'WAITING': "等待输入...",
         'PROGRESS': "正在计算",
@@ -93,6 +100,55 @@ TRANSLATIONS = {
             'gl-en': "国际服 (GL-EN)",
             'gl-jp': "国际服 (GL-JP)",
             'kr': "韩服 (KR) (暂不支持)"
+        }
+    },
+    'jp': {
+        'APP_TITLE': "🐾 全体最適ペット派遣プランナー",
+        'CONFIG_MGMT': "💾 設定管理",
+        'LOAD_CONFIG': "設定ファイルを読み込む (.json)",
+        'LOAD_SUCCESS': "設定を読み込みました！",
+        'LOAD_FAIL': "設定の読み込みに失敗しました: {}",
+        'SERVER_SETTINGS': "🌐 サーバー設定",
+        'SELECT_SERVER': "1. サーバーを選択",
+        'SELECT_JOB_FILE': "2. お使いデータを選択",
+        'MAX_JOBS': "3. 最大派遣数",
+        'SAVE_CONFIG': "📥 現在の設定をダウンロード",
+        'MY_PETS': "📋 所持ペット",
+        'SEARCH_PETS': "ペットを検索...",
+        'EXPAND_PET_LIST': "所持ペットを選択（チェック）",
+        'CLI_PET_SELECTION': "ペット番号を入力してください（例: 1 3 5）: ",
+        'BORROW_PETS': "🤝 レンタルペット",
+        'SET_BORROW_COPIES': "農場でレンタルできる数を設定",
+        'CLI_BORROW_EXAMPLE': "番号:数 の形式で入力（例: 1:1 5:3 はペット#1を1匹、ペット#5を3匹レンタル）: ",
+        'RUN_OPTIMIZER': "🚀 最適な派遣を計算",
+        'RESULTS': "📊 計算結果",
+        'CALC_TIME': "計算時間（秒）",
+        'TOTAL_REWARD': "派遣報酬の合計（22時間）",
+        'TOTAL_BORROWED': "レンタル数の合計",
+        'OPTIMAL_FOUND': "最適解が見つかりました！",
+        'NO_OPTIMAL': "最適解が見つかりませんでした。状態: {}",
+        'SELECT_OWNED_WARNING': "所持ペットを1匹以上選択してください。",
+        'TASK_FILE_NOT_FOUND': "data/missions にお使いデータがありません",
+        'PET_CONFIG_TAB': "ペット設定",
+        'RESULT_TAB': "計算結果",
+        'INFO_TEXT': "ペットと設定を選んだら「最適な派遣を計算」を押してください。",
+        'DISPATCH_TEAM': "派遣メンバー",
+        'RAW_SCORE': "スコア",
+        'BONUS_TRAITS': "ボーナス特性",
+        'TASK_NAME': "お使い",
+        'TASK_PREVIEW': "📋 お使い一覧",
+        'VIEW_ON_GITHUB': "GitHubでコードを見る",
+        'LANGUAGE': "UI Language / 界面语言 / 表示言語",
+        'CONFIG_HINT': "💡 任意：以前保存した .json 設定ファイル（下のボタンで保存）をアップロードすると、設定をすぐに復元できます。",
+        'BORROW_TAG': " (レンタル)",
+        'STATUS': "派遣",
+        'WAITING': "入力待ち...",
+        'PROGRESS': "計算中",
+        'SERVER_NAMES': {
+            'gl-cn': "グローバル版 (GL-CN)",
+            'gl-en': "グローバル版 (GL-EN)",
+            'gl-jp': "グローバル版 (GL-JP)",
+            'kr': "韓国版 (KR) (未対応)"
         }
     }
 }
