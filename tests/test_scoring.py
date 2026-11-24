@@ -29,10 +29,8 @@ def test_calculate_pet_score_for_task():
     assert calculate_pet_score_for_task(pet, task_with_no_match) == 5
 
 def test_get_reward_level():
-    # Test CN server labels
-    assert get_reward_level(37, 'cn') == '特阶'
-    assert get_reward_level(25, 'cn') == '一阶'
-    assert get_reward_level(0, 'cn') == '无奖励'
+    # Retired/unknown servers fall back to GL labels
+    assert get_reward_level(37, 'cn') == 'S'
 
     # Test GL server labels
     assert get_reward_level(37, 'gl-cn') == 'S'

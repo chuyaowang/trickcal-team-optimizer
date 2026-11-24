@@ -44,7 +44,6 @@ TRANSLATIONS = {
         'SERVER_NAMES': {
             'gl-cn': "Global Server (GL-CN)",
             'gl-en': "Global Server (GL-EN)",
-            'cn': "China Server (CN)",
             'kr': "Korea Server (KR) (Not supported yet)"
         }
     },
@@ -91,7 +90,6 @@ TRANSLATIONS = {
         'SERVER_NAMES': {
             'gl-cn': "国际服 (GL-CN)",
             'gl-en': "国际服 (GL-EN)",
-            'cn': "中国服 (CN)",
             'kr': "韩服 (KR) (暂不支持)"
         }
     }

@@ -8,11 +8,17 @@ SKILL_SCORE_MAP = {
 
 # Server -> data language (1:1; used for names, traits, and reward labels)
 SERVER_LANG = {
-    "cn": "zh_hans",
     "gl-cn": "zh_hant",
     "gl-en": "en",
     "kr": "ko",
 }
+
+DEFAULT_SERVER = "gl-cn"
+
+
+def normalize_server(server):
+    """Return `server` if supported, else the default (e.g. retired 'cn' -> 'gl-cn')."""
+    return server if server in SERVER_LANG else DEFAULT_SERVER
 
 # Rarity base score, keyed by language-neutral rarity key
 RARITY_BASE_SCORE = {
@@ -24,14 +30,6 @@ RARITY_BASE_SCORE = {
 
 # 奖励等级阈值映射 (Server -> List of (threshold, level))
 SERVER_REWARD_LEVELS = {
-    'cn': [
-        (37, "特阶"),
-        (25, "一阶"),
-        (13, "二阶"),
-        (5, "三阶"),
-        (1, "四阶"),
-        (0, "无奖励")
-    ],
     'gl-cn': [
         (37, "S"),
         (25, "A"),

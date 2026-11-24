@@ -16,7 +16,7 @@ from src.core.scoring import precompute_pet_task_scores, get_reward_level, get_c
 from src.core.assignment import calculate_best_assignment
 from src.core.i18n import t
 from src.core.analytics import track_visit
-from src.core.constants import SERVER_LANG
+from src.core.constants import SERVER_LANG, DEFAULT_SERVER, normalize_server
 from src.data_loader.vocab_loader import trait_name
 from src.ui import pet_selector
 
@@ -47,7 +47,7 @@ track_visit()
 if 'lang' not in st.session_state:
     st.session_state.lang = 'cn'
 if 'server' not in st.session_state:
-    st.session_state.server = 'gl-cn'
+    st.session_state.server = DEFAULT_SERVER
 if 'p_limit' not in st.session_state:
     st.session_state.p_limit = 5
 if 'owned_set' not in st.session_state:
@@ -106,7 +106,7 @@ def on_config_upload():
             owned, counts = pet_selector.config_to_state(config)
             st.session_state.owned_set = owned
             st.session_state.borrow_counts = counts
-            st.session_state.server = config.get('server', st.session_state.server)
+            st.session_state.server = normalize_server(config.get('server', st.session_state.server))
             st.session_state.p_limit = config.get('max_job_number', st.session_state.p_limit)
             st.session_state.lang = config.get('ui_language', st.session_state.lang)
             st.session_state.msg_success = True
@@ -312,8 +312,6 @@ with st.expander(t('TASK_PREVIEW', st.session_state.lang), expanded=True):
 
 # Rank Colors
 RANK_COLORS = {
-    "特阶": "#FFD700", "一阶": "#FFEC8B", "二阶": "#C0C0C0", 
-    "三阶": "#CD7F32", "四阶": "#A0522D", "无奖励": "#F0F2F6",
     "S": "#FFD700", "A": "#FFEC8B", "B": "#C0C0C0", 
     "C": "#CD7F32", "D": "#A0522D", "N/A": "#F0F2F6"
 }

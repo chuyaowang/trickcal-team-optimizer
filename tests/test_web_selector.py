@@ -65,7 +65,7 @@ def test_switching_server_clears_selections_without_crashing():
     and the summary boxes defensively skip names absent from the new server.
     """
     # The app defaults to the gl-cn server; seed selections from it, then switch
-    # to a different server (cn), whose pet names differ (Simplified vs
+    # to a different server (gl-en), whose pet names differ (English vs
     # Traditional Chinese).
     raw_default = load_pets(server="gl-cn")[0]["name"]
     at = AppTest.from_file(APP).run(timeout=60)
@@ -81,7 +81,7 @@ def test_switching_server_clears_selections_without_crashing():
     # Switch to a different server: re-rendering with stale names must not
     # crash, and on_server_change must clear the selections.
     srv = [r for r in at.radio if r.key == "server"][0]
-    srv.set_value("cn").run(timeout=60)
+    srv.set_value("gl-en").run(timeout=60)
     assert not at.exception, at.exception
     assert at.session_state["owned_set"] == []
     assert at.session_state["borrow_counts"] == {}

@@ -5,7 +5,7 @@ import os
 from typing import List, Dict
 
 from src.data_loader.csv_loader import load_pets, load_missions, get_available_mission_files
-from src.core.constants import SKILL_SCORE_MAP, SERVER_LANG
+from src.core.constants import SKILL_SCORE_MAP, SERVER_LANG, DEFAULT_SERVER
 from src.core.scoring import precompute_pet_task_scores, get_reward_level, get_carrot_reward, format_reward_range
 from src.core.assignment import calculate_best_assignment
 
@@ -20,7 +20,7 @@ class DispatchCalculatorGUI:
         self.owned_pets = []
         self.aux_pets_counts = {} # {pet_name: count}
         self.job_files = []
-        self.server = 'cn'
+        self.server = DEFAULT_SERVER
         
         self.create_widgets()
         self.load_server_data()
@@ -34,8 +34,8 @@ class DispatchCalculatorGUI:
         server_frame = ttk.LabelFrame(self.root, text="1. 选择服务器")
         server_frame.pack(padx=10, pady=5, fill=tk.X)
         
-        self.server_var = tk.StringVar(value="cn")
-        servers = [("中国服 (CN)", "cn"), ("国际服 (GL-CN)", "gl-cn"), ("国际服 (GL-EN)", "gl-en"), ("韩服 (KR)", "kr")]
+        self.server_var = tk.StringVar(value=DEFAULT_SERVER)
+        servers = [("国际服 (GL-CN)", "gl-cn"), ("国际服 (GL-EN)", "gl-en"), ("韩服 (KR)", "kr")]
         for text, mode in servers:
             ttk.Radiobutton(server_frame, text=text, variable=self.server_var, value=mode, command=self.on_server_change).pack(side=tk.LEFT, padx=15, pady=5)
 

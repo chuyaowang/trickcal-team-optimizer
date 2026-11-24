@@ -5,7 +5,7 @@ import os
 from src.data_loader.csv_loader import load_pets, load_missions, get_available_mission_files
 from src.core.scoring import precompute_pet_task_scores, get_reward_level
 from src.core.assignment import calculate_best_assignment
-from src.core.constants import SKILL_SCORE_MAP, SERVER_LANG
+from src.core.constants import SKILL_SCORE_MAP, SERVER_LANG, normalize_server
 from src.core.i18n import t
 from src.ui.cli import (
     select_server, select_job_file, show_pets, 
@@ -26,7 +26,7 @@ def run_config(config_path, lang='cn'):
         print(f"Error: Failed to read config. {e}")
         return
 
-    server = config.get('server', 'cn')
+    server = normalize_server(config.get('server'))
     max_active_jobs = config.get('max_job_number', 5)
     owned_pets_list = config.get('owned_pets', [])
     aux_pets_counts = config.get('aux_pets_counts', {})

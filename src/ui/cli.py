@@ -42,7 +42,7 @@ def select_job_file(job_files: List[str], lang='cn') -> str:
         except ValueError:
             print("Number only")
 
-def show_pets(pets: List[Dict], skill_scores: Dict[str, int], lang='cn', server='cn'):
+def show_pets(pets: List[Dict], skill_scores: Dict[str, int], lang='cn', server='gl-cn'):
     """显示所有宠物列表"""
     print(f"\n===== {t('MY_PETS', lang)} =====")
     data_lang = SERVER_LANG.get(server, 'en')

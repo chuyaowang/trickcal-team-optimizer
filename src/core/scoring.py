@@ -1,5 +1,5 @@
 from typing import List, Dict, Tuple
-from src.core.constants import SERVER_REWARD_LEVELS, TIER_REWARD_MAP
+from src.core.constants import SERVER_REWARD_LEVELS, TIER_REWARD_MAP, DEFAULT_SERVER
 
 def calculate_pet_score_for_task(pet: Dict, task: Dict) -> int:
     """计算单个宠物在特定任务下的得分"""
@@ -22,9 +22,9 @@ def calculate_team_score(combo: List[Dict], task: Dict, pet_task_scores: Dict[Tu
     """计算宠物组合的总得分"""
     return sum(pet_task_scores[(pet['name'], task['task'])] for pet in combo)
 
-def get_reward_level(score: int, server: str = 'cn') -> str:
+def get_reward_level(score: int, server: str = DEFAULT_SERVER) -> str:
     """根据总得分获取奖励等级"""
-    levels = SERVER_REWARD_LEVELS.get(server, SERVER_REWARD_LEVELS['cn'])
+    levels = SERVER_REWARD_LEVELS.get(server, SERVER_REWARD_LEVELS[DEFAULT_SERVER])
     for threshold, level in levels:
         if score >= threshold:
             return level

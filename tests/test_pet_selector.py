@@ -35,10 +35,10 @@ def test_expand_borrow_and_parse_roundtrip():
 
 
 def test_state_config_roundtrip_drops_zero_counts():
-    cfg = ps.state_to_config(["Inky"], {"Sato": 2, "Z": 0}, "cn", 5, "en")
+    cfg = ps.state_to_config(["Inky"], {"Sato": 2, "Z": 0}, "gl-cn", 5, "en")
     assert cfg["owned_pets"] == ["Inky"]
     assert cfg["aux_pets_counts"] == {"Sato": 2}
-    assert cfg["server"] == "cn" and cfg["max_job_number"] == 5 and cfg["ui_language"] == "en"
+    assert cfg["server"] == "gl-cn" and cfg["max_job_number"] == 5 and cfg["ui_language"] == "en"
     owned, counts = ps.config_to_state(cfg)
     assert owned == ["Inky"] and counts == {"Sato": 2}
 

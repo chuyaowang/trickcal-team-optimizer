@@ -19,8 +19,8 @@ def test_translation_lookups():
 def test_nested_server_names():
     # English server names
     en_servers = t('SERVER_NAMES', 'en')
-    assert en_servers['cn'] == "China Server (CN)"
-    
+    assert list(en_servers) == ['gl-cn', 'gl-en', 'kr']
+
     # Chinese server names
     cn_servers = t('SERVER_NAMES', 'cn')
-    assert cn_servers['cn'] == "中国服 (CN)"
+    assert list(cn_servers) == ['gl-cn', 'gl-en', 'kr']

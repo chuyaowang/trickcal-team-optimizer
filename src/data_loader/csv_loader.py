@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import glob
 from typing import List, Dict
-from src.core.constants import SKILL_SCORE_MAP, RARITY_BASE_SCORE, SERVER_LANG
+from src.core.constants import SKILL_SCORE_MAP, RARITY_BASE_SCORE, SERVER_LANG, DEFAULT_SERVER
 from src.data_loader import vocab_loader
 
 def get_available_mission_files(data_dir: str = './data') -> List[str]:
@@ -35,7 +35,7 @@ def load_missions(file_path: str, lang: str) -> List[Dict]:
         tasks.append({'task': f"{location} - {task}", 'bonus_skills': bonus_skills})
     return tasks
 
-def load_pets(server: str = 'cn', data_dir: str = './data') -> List[Dict]:
+def load_pets(server: str = DEFAULT_SERVER, data_dir: str = './data') -> List[Dict]:
     """Load pets available on `server` from the canonical master.
 
     Availability = the pet has a non-empty name in the server's language.
