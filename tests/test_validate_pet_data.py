@@ -2,7 +2,7 @@ import csv
 
 import pytest
 
-from scripts.validate_pet_data import find_unknown_job_traits, find_mission_file_errors
+from scripts.validate_pet_data import find_mission_file_errors
 
 REGIONS = {"LAKE": 5, "POND": 5, "LAB": 4}
 TRAITS = {"KIND", "KEEN"}
@@ -31,15 +31,3 @@ def test_mission_file_without_problems_has_no_errors(tmp_path):
 def test_mission_file_problems_are_reported(tmp_path, rows, needle):
     errors = find_mission_file_errors(_mission_file(tmp_path, *rows), REGIONS, TRAITS)
     assert len(errors) == 1 and needle in errors[0]
-
-
-def test_find_unknown_job_traits_flags_missing_key(tmp_path):
-    jobs = tmp_path / "jobs.csv"
-    with open(jobs, "w", encoding="utf-8-sig", newline="") as f:
-        w = csv.writer(f)
-        w.writerow(["Location", "Task", "Trait 1", "Trait 2"])
-        w.writerow(["Forest", "Gather", "体贴", "未知特性"])
-    # known maps only 体贴 -> KIND
-    known = {"体贴": "KIND"}
-    unknown = find_unknown_job_traits(str(jobs), known)
-    assert unknown == ["未知特性"]

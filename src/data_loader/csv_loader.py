@@ -5,11 +5,6 @@ from typing import List, Dict
 from src.core.constants import SKILL_SCORE_MAP, RARITY_BASE_SCORE, SERVER_LANG
 from src.data_loader import vocab_loader
 
-def get_available_job_files(server: str = 'cn', data_dir: str = './data') -> List[str]:
-    """获取指定服务器目录下的所有jobs_*.csv文件"""
-    pattern = os.path.join(data_dir, server, 'jobs_*.csv')
-    return sorted(glob.glob(pattern))
-
 def get_available_mission_files(data_dir: str = './data') -> List[str]:
     """List the central missions_YYMMDD.csv files (shared by all servers), oldest first."""
     return sorted(glob.glob(os.path.join(data_dir, 'missions', 'missions_*.csv')))
@@ -82,33 +77,3 @@ def load_pets(server: str = 'cn', data_dir: str = './data') -> List[Dict]:
             'is_borrowed': False,
         })
     return pets
-
-def load_tasks(file_path: str, lang: str = 'zh_hans') -> List[Dict]:
-    """Load tasks; convert localized job traits to language-neutral keys.
-
-    `lang` is the DATA language of the jobs file (SERVER_LANG[server]), not the
-    UI language. Unrecognized trait text is kept as-is (flagged by the validator).
-    """
-    locations = []
-    try:
-        df = pd.read_csv(file_path)
-        for _, row in df.iterrows():
-            location_name = row['Location']
-            if pd.isna(location_name):
-                continue
-
-            bonus_skills = []
-            for col in ('Trait 1', 'Trait 2'):
-                if pd.notna(row[col]):
-                    text = str(row[col]).strip()
-                    key = vocab_loader.trait_key_from_localized(text, lang)
-                    bonus_skills.append(key if key else text)
-
-            locations.append({
-                'task': f"{location_name} - {row['Task']}",
-                'bonus_skills': bonus_skills
-            })
-    except FileNotFoundError:
-        print(f"警告：未找到{file_path}文件。")
-
-    return locations

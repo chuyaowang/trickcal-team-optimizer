@@ -4,8 +4,8 @@ import time
 import os
 from typing import List, Dict
 
-from src.data_loader.csv_loader import load_pets, load_tasks, get_available_job_files
-from src.core.constants import SKILL_SCORE_MAP
+from src.data_loader.csv_loader import load_pets, load_missions, get_available_mission_files
+from src.core.constants import SKILL_SCORE_MAP, SERVER_LANG
 from src.core.scoring import precompute_pet_task_scores, get_reward_level, get_carrot_reward, format_reward_range
 from src.core.assignment import calculate_best_assignment
 
@@ -120,10 +120,10 @@ class DispatchCalculatorGUI:
                 self.farm_tree.insert("", tk.END, values=(pet['name'], 0))
             
             # 加载任务文件
-            self.job_files = get_available_job_files(server=self.server)
+            self.job_files = get_available_mission_files()
             if self.job_files:
                 self.job_file_combobox["values"] = [os.path.basename(f) for f in self.job_files]
-                self.job_file_combobox.current(0)
+                self.job_file_combobox.current(len(self.job_files) - 1)
                 self.on_job_file_selected(None)
             else:
                 self.job_file_combobox["values"] = []
@@ -135,7 +135,7 @@ class DispatchCalculatorGUI:
     def on_job_file_selected(self, event):
         idx = self.job_file_combobox.current()
         if 0 <= idx < len(self.job_files):
-            self.current_tasks = load_tasks(self.job_files[idx])
+            self.current_tasks = load_missions(self.job_files[idx], lang=SERVER_LANG[self.server])
 
     def on_farm_pet_double_click(self, event):
         item_id = self.farm_tree.identify_row(event.y)

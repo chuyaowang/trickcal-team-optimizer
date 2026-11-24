@@ -11,7 +11,7 @@ project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from src.data_loader.csv_loader import load_pets, load_tasks, get_available_job_files
+from src.data_loader.csv_loader import load_pets, load_missions, get_available_mission_files
 from src.core.scoring import precompute_pet_task_scores, get_reward_level, get_carrot_reward, format_reward_range
 from src.core.assignment import calculate_best_assignment
 from src.core.i18n import t
@@ -31,7 +31,7 @@ def get_cached_pets(server):
 
 @st.cache_data
 def get_cached_tasks(file_path, lang):
-    return load_tasks(file_path, lang=lang)
+    return load_missions(file_path, lang=lang)
 
 # --- PAGE CONFIG ---
 st.set_page_config(
@@ -217,19 +217,20 @@ with st.sidebar:
         on_change=on_server_change
     )
     
-    # 2. Job File Selection
-    job_files = get_available_job_files(server=st.session_state.server)
-    if job_files:
+    # 2. Mission File Selection (shared by all servers)
+    mission_files = get_available_mission_files()
+    if mission_files:
+        if st.session_state.get('mission_file') not in mission_files:
+            st.session_state.mission_file = mission_files[-1]
         job_file_path = st.selectbox(
-            t('SELECT_JOB_FILE', st.session_state.lang), 
-            options=job_files, 
+            t('SELECT_JOB_FILE', st.session_state.lang),
+            options=mission_files,
             format_func=lambda x: os.path.basename(x),
-            index=len(job_files) - 1,
-            key=f"job_select_{st.session_state.server}",
+            key="mission_file",
             on_change=clear_results
         )
     else:
-        st.error(t('TASK_FILE_NOT_FOUND', st.session_state.lang).format(st.session_state.server))
+        st.error(t('TASK_FILE_NOT_FOUND', st.session_state.lang))
         st.stop()
         
     # 3. Max Jobs (P)

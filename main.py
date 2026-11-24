@@ -2,7 +2,7 @@ import time
 import argparse
 import json
 import os
-from src.data_loader.csv_loader import load_pets, load_tasks, get_available_job_files
+from src.data_loader.csv_loader import load_pets, load_missions, get_available_mission_files
 from src.core.scoring import precompute_pet_task_scores, get_reward_level
 from src.core.assignment import calculate_best_assignment
 from src.core.constants import SKILL_SCORE_MAP, SERVER_LANG
@@ -39,12 +39,12 @@ def run_config(config_path, lang='cn'):
         print(f"Error: {e}")
         return
 
-    job_files = get_available_job_files(server=server)
+    job_files = get_available_mission_files()
     if not job_files:
-        print(f"Error: No tasks in data/{server}")
+        print(f"Error: {t('TASK_FILE_NOT_FOUND', ui_lang)}")
         return
-    selected_job_file = job_files[-1] 
-    tasks = load_tasks(selected_job_file, lang=SERVER_LANG[server])
+    selected_job_file = job_files[-1]
+    tasks = load_missions(selected_job_file, lang=SERVER_LANG[server])
 
     my_pets = [p for p in all_pets if p['name'] in owned_pets_list]
     
@@ -92,13 +92,13 @@ def main():
         print(f"Error: {e}")
         return
 
-    job_files = get_available_job_files(server=server)
+    job_files = get_available_mission_files()
     if not job_files:
-        print(f"Error: data/{server} is empty")
+        print(f"Error: {t('TASK_FILE_NOT_FOUND', lang)}")
         return
-    
+
     selected_job_file = select_job_file(job_files, lang)
-    tasks = load_tasks(selected_job_file, lang=SERVER_LANG[server])
+    tasks = load_missions(selected_job_file, lang=SERVER_LANG[server])
 
     show_pets(all_pets, SKILL_SCORE_MAP, lang, server)
     my_pets = select_owned_pets(all_pets, lang)

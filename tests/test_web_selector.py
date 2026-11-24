@@ -85,3 +85,20 @@ def test_switching_server_clears_selections_without_crashing():
     assert not at.exception, at.exception
     assert at.session_state["owned_set"] == []
     assert at.session_state["borrow_counts"] == {}
+
+
+def test_mission_file_selection_survives_server_switch():
+    """Missions are shared by all servers, so the chosen update must stay put."""
+    at = AppTest.from_file(APP).run(timeout=60)
+    assert not at.exception, at.exception
+    # The latest update is selected by default; pick the oldest instead.
+    _workaround_none_valued_button_groups(at)
+    at.selectbox(key="mission_file").select_index(0).run(timeout=60)
+    assert not at.exception, at.exception
+    chosen = at.session_state["mission_file"]
+    assert chosen.endswith("missions_260326.csv")
+
+    _workaround_none_valued_button_groups(at)
+    [r for r in at.radio if r.key == "server"][0].set_value("gl-en").run(timeout=60)
+    assert not at.exception, at.exception
+    assert at.session_state["mission_file"] == chosen

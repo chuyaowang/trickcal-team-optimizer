@@ -2,8 +2,8 @@
 """Validate pet data integrity. Exits non-zero on errors; warnings don't fail.
 
 Checks:
-  - every trait in every jobs_*.csv resolves to a key (per server language);
-    servers whose language has no translations yet (e.g. kr/ko) are skipped
+  - every missions_*.csv uses known location/trait keys, lists each location
+    once, and stays within one region
   - every trait_*/rarity_key in pets.csv exists in the i18n tables
   - warn on pets whose id has no icon file, and on duplicate ids
 """
@@ -14,19 +14,7 @@ import sys
 
 import pandas as pd
 
-from src.core.constants import SERVER_LANG
 from src.data_loader import vocab_loader
-
-
-def find_unknown_job_traits(jobs_path, known_localized_to_key):
-    df = pd.read_csv(jobs_path).fillna("")
-    unknown = []
-    for _, row in df.iterrows():
-        for col in ("Trait 1", "Trait 2"):
-            text = str(row.get(col, "")).strip()
-            if text and text not in known_localized_to_key:
-                unknown.append(text)
-    return unknown
 
 
 def find_mission_file_errors(path, regions, trait_keys):
@@ -58,17 +46,6 @@ def main(data_dir="data"):
     rarity = vocab_loader._load_table("rarity.csv")
     trait_keys = set(traits)
     rarity_keys = set(rarity)
-
-    # jobs traits resolve (skip languages with no translations yet)
-    for server, lang in SERVER_LANG.items():
-        known = vocab_loader._reverse_table("traits.csv").get(lang, {})
-        if not known:
-            warnings.append(f"{server}: language '{lang}' has no trait "
-                            f"translations yet; skipping its jobs files")
-            continue
-        for jobs_path in glob.glob(os.path.join(data_dir, server, "jobs_*.csv")):
-            for text in find_unknown_job_traits(jobs_path, known):
-                errors.append(f"{jobs_path}: trait '{text}' has no key for {lang}")
 
     # central missions files
     regions = vocab_loader.location_regions()
