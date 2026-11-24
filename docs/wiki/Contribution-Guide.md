@@ -12,7 +12,7 @@ Pets and missions are shared by all servers; only the display language differs.
 - `data/pet_images/<id>.png`: pet icons, named by the pet's `id`.
 
 Each server maps to one language: `gl-cn`→Traditional Chinese, `gl-en`→English,
-`kr`→Korean (not supported yet). A pet is considered available on a server when
+`gl-jp`→Japanese, `kr`→Korean (not supported yet). A pet is considered available on a server when
 it has a non-empty name in that server's language column.
 
 ## 1. Updating Pets (`data/pets.csv`)

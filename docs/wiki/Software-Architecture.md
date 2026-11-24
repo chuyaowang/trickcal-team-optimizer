@@ -35,7 +35,7 @@ Handles loading pet traits and job requirements from server-specific subdirector
 - **Tkinter GUI (`gui.py`)**: A basic desktop fallback for environments without a web browser or Streamlit support.
 
 ## Server-Specific Logic
-All servers (GL-CN, GL-EN, KR) share the same pet data (`data/pets.csv`) and the same mission files (`data/missions/`), written with language-neutral keys. The selected server only decides:
-- The display language for pet, trait, location and task names (Traditional Chinese, English or Korean), looked up in `data/i18n/`.
+All servers (GL-CN, GL-EN, GL-JP, KR) share the same pet data (`data/pets.csv`) and the same mission files (`data/missions/`), written with language-neutral keys. The selected server only decides:
+- The display language for pet, trait, location and task names (Traditional Chinese, English, Japanese or Korean), looked up in `data/i18n/`.
 - Which pets are available (a pet must have a name in the server's language).
 - The reward tier labels used in result reporting.

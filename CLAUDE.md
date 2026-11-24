@@ -11,9 +11,9 @@
   - Max 1 borrowed pet per task.
   - Max 3 borrowed pets total across all active tasks.
   - No duplicate pets (clones) allowed within the same team (even if one is owned and one is borrowed).
-  - Respects server-specific reward labels (GL, KR).
-- **Localization:** Full multi-language support (English/Chinese) for UI and results via `src/core/i18n.py`.
-- **Server Support:** Servers `gl-cn`, `gl-en`, `kr` share one canonical `data/pets.csv` and one `data/missions/missions_YYMMDD.csv` per game update (language-neutral keys); only the display language differs. The CN server is retired (configs naming it load as `gl-cn`).
+  - Respects server-specific reward labels (GL, KR; GL-JP uses Sランク…Dランク).
+- **Localization:** Full multi-language support (English/Chinese/Japanese) for UI and results via `src/core/i18n.py`.
+- **Server Support:** Servers `gl-cn`, `gl-en`, `gl-jp`, `kr` share one canonical `data/pets.csv` and one `data/missions/missions_YYMMDD.csv` per game update (language-neutral keys); only the display language differs. The CN server is retired (configs naming it load as `gl-cn`).
 
 ### Technologies
 - **Language:** Python 3.10+
@@ -37,8 +37,8 @@
 
 ## Development Conventions
 - **Data Integrity:** All CSV files **MUST** be saved with **UTF-8 with BOM** encoding for Excel compatibility.
-- **Language Consistency:** Data files use language-neutral keys; display text comes from `data/i18n/`. Server languages: `gl-cn`→Traditional Chinese, `gl-en`→English, `kr`→Korean (not supported yet).
-- **UI Decoupling:** The UI language (`en`/`cn`) is decoupled from the server data selection.
+- **Language Consistency:** Data files use language-neutral keys; display text comes from `data/i18n/`. Server languages: `gl-cn`→Traditional Chinese, `gl-en`→English, `gl-jp`→Japanese, `kr`→Korean (not supported yet).
+- **UI Decoupling:** The UI language (`en`/`cn`/`jp`) is decoupled from the server data selection.
 - **UI State Management (Streamlit):** To ensure stable widget behavior and prevent "reverting value" bugs, **ALWAYS** use the `key` parameter in Streamlit widgets (e.g., `st.number_input(..., key='p_limit')`) to link them directly to `st.session_state`. Avoid manual state assignments immediately after widget rendering.
 
 ## Building and Running

@@ -9,7 +9,7 @@
 - `data/i18n/traits.csv`、`data/i18n/rarity.csv`、`data/i18n/locations.csv`: 翻译表，将语言无关的“键”映射为各语言名称。
 - `data/pet_images/<id>.png`: 宠物图标，按宠物的 `id` 命名。
 
-每个服务器对应一种语言：`gl-cn`→繁体、`gl-en`→英文、`kr`→韩文（暂不支持）。
+每个服务器对应一种语言：`gl-cn`→繁体、`gl-en`→英文、`gl-jp`→日文、`kr`→韩文（暂不支持）。
 当某只宠物在该服务器对应语言的名称列非空时，即视为该宠物在此服务器可用。
 
 ## 1. 更新宠物数据 (`data/pets.csv`)

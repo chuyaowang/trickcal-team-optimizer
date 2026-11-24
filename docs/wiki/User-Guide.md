@@ -16,9 +16,9 @@ The application offers three ways to interact with the solver:
 Run via: `streamlit run src/ui/web_gui.py`
 
 ### Getting Started
-1.  **Language**: Toggle between **English** and **Chinese** at the top of the sidebar.
-2.  **Select Your Server**: Choose between CN, GL-CN, GL-EN, or KR.
-    - *Note: GL-EN uses English names for pets and tasks.*
+1.  **Language**: Choose **简体中文**, **English** or **日本語** at the top of the sidebar.
+2.  **Select Your Server**: Choose GL-CN, GL-EN, GL-JP, or KR.
+    - *Note: each server shows pet and task names in its own language (GL-CN Traditional Chinese, GL-EN English, GL-JP Japanese).*
 3.  **Choose a Job Batch**: Select the current active job list from the dropdown.
 4.  **Identify Your Pets**:
     -   **Owned Pets**: Check the boxes for pets you have. Organized in a 2-column grid.
