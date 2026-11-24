@@ -22,6 +22,8 @@ def find_mission_file_errors(path, regions, trait_keys):
     df = pd.read_csv(path, dtype=str, encoding="utf-8-sig").fillna("")
     errors, seen = [], set()
     for _, row in df.iterrows():
+        if not any(str(v).strip() for v in row):
+            continue  # blank row, e.g. trailing ",," saved by Excel
         loc = row["location"].strip()
         if loc not in regions:
             errors.append(f"{path}: unknown location key '{loc}'")

@@ -19,6 +19,8 @@ def load_missions(file_path: str, lang: str) -> List[Dict]:
     known_traits = vocab_loader._load_table("traits.csv")
     tasks = []
     for _, row in df.iterrows():
+        if not any(str(v).strip() for v in row):
+            continue  # blank row, e.g. trailing ",," saved by Excel
         loc_key = row["location"].strip()
         try:
             location, task = vocab_loader.location_text(loc_key, lang)

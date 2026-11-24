@@ -18,7 +18,7 @@ def _mission_file(tmp_path, *rows):
 
 
 def test_mission_file_without_problems_has_no_errors(tmp_path):
-    path = _mission_file(tmp_path, ["LAKE", "KEEN", ""], ["POND", "KIND", "KEEN"])
+    path = _mission_file(tmp_path, ["LAKE", "KEEN", ""], ["POND", "KIND", "KEEN"], ["", "", ""])
     assert find_mission_file_errors(path, REGIONS, TRAITS) == []
 
 

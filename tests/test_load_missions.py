@@ -57,6 +57,13 @@ def test_whitespace_is_stripped(tmp_path, i18n):
     assert tasks == [{"task": "Lake - Playing in Water", "bonus_skills": ["KEEN"]}]
 
 
+def test_blank_rows_are_skipped(tmp_path, i18n):
+    path = _missions(tmp_path, ["LAKE", "KEEN", ""], ["", "", ""])
+    assert csv_loader.load_missions(path, lang="en") == [
+        {"task": "Lake - Playing in Water", "bonus_skills": ["KEEN"]}
+    ]
+
+
 def test_unknown_location_raises(tmp_path, i18n):
     path = _missions(tmp_path, ["NOPE", "KEEN", ""])
     with pytest.raises(ValueError, match="NOPE"):
