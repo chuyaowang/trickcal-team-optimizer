@@ -1,6 +1,6 @@
 # Software Architecture Overview
 
-The `trickcal-team-optimizer` project is designed with a modular architecture to separate data handling, core logic, and user interfaces. This structure allows for easy maintenance and expansion to different game servers (CN, GL, KR).
+The `trickcal-team-optimizer` project is designed with a modular architecture to separate data handling, core logic, and user interfaces. This structure allows for easy maintenance and expansion to different game servers (GL, KR).
 
 ## Directory Structure
 ```text
@@ -35,7 +35,7 @@ Handles loading pet traits and job requirements from server-specific subdirector
 - **Tkinter GUI (`gui.py`)**: A basic desktop fallback for environments without a web browser or Streamlit support.
 
 ## Server-Specific Logic
-The application dynamically switches its context based on the selected server (CN, GL, or KR). This affects:
-- The data paths (e.g., `data/gl/`).
-- The character encoding (Simplified vs. Traditional Chinese).
-- The reward tier labels and label-threshold mappings used in result reporting and optimization.
+All servers (GL-CN, GL-EN, KR) share the same pet data (`data/pets.csv`) and the same mission files (`data/missions/`), written with language-neutral keys. The selected server only decides:
+- The display language for pet, trait, location and task names (Traditional Chinese, English or Korean), looked up in `data/i18n/`.
+- Which pets are available (a pet must have a name in the server's language).
+- The reward tier labels used in result reporting.

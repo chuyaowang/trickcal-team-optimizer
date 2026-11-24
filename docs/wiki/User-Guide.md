@@ -39,7 +39,7 @@ Run via: `python -m src.ui.gui`
 This is a simple version of the tool that runs as a standard window on your computer.
 
 ### How to Use
-1.  **Server & Job**: Select the server and the job file at the top.
+1.  **Server & Missions**: Select the server and the mission update (one file per game update, shared by all servers) at the top.
 2.  **Selection**: 
     -   Highlight pets in the "Owned" list.
     -   In the "Farm" table, **double-click** the "Count" column to enter borrowable copies.

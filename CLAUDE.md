@@ -5,15 +5,15 @@
 
 ### Core Logic
 - **Algorithm:** Mixed Integer Linear Programming (MILP) implemented via the `PuLP` library.
-- **Optimization Goal:** Maximize the total number of reward (carrots) (each tier S, A, B, etc., or 特阶, 一阶, 二阶, etc. corresponds to a different carrot reward amount) across up to 5 concurrent tasks, with a tiny penalty per assigned pet to encourage minimal team sizes in case of ties.
+- **Optimization Goal:** Maximize the total number of reward (carrots) (each tier S, A, B, etc. corresponds to a different carrot reward amount) across up to 5 concurrent tasks, with a tiny penalty per assigned pet to encourage minimal team sizes in case of ties.
 - **Constraints:**
   - 1-3 pets per task.
   - Max 1 borrowed pet per task.
   - Max 3 borrowed pets total across all active tasks.
   - No duplicate pets (clones) allowed within the same team (even if one is owned and one is borrowed).
-  - Respects server-specific reward thresholds (CN, GL, KR
+  - Respects server-specific reward labels (GL, KR).
 - **Localization:** Full multi-language support (English/Chinese) for UI and results via `src/core/i18n.py`.
-- **Server Support:** Server-specific folders (`cn`, `gl-cn`, `gl-en`, `kr`) with localized `pets.csv` and versioned `jobs_YYMMDD.csv`.
+- **Server Support:** Servers `gl-cn`, `gl-en`, `kr` share one canonical `data/pets.csv` and one `data/missions/missions_YYMMDD.csv` per game update (language-neutral keys); only the display language differs. The CN server is retired (configs naming it load as `gl-cn`).
 
 ### Technologies
 - **Language:** Python 3.10+
@@ -33,11 +33,11 @@
     - `web_gui.py`: Primary Streamlit interface with config save/load.
     - `cli.py` / `main.py`: Command Line interface with config support.
     - `gui.py`: Basic fallback Tkinter GUI.
-- `data/`: Subdirectories per server (`cn`, `gl-cn`, `gl-en`, `kr`).
+- `data/`: `pets.csv`, `missions/missions_YYMMDD.csv`, translation tables in `i18n/` (`traits.csv`, `rarity.csv`, `locations.csv`), and `pet_images/`.
 
 ## Development Conventions
 - **Data Integrity:** All CSV files **MUST** be saved with **UTF-8 with BOM** encoding for Excel compatibility.
-- **Language Consistency:** Data in `gl-cn` and `kr` uses Traditional Chinese; `cn` uses Simplified Chinese; `gl-en` uses English.
+- **Language Consistency:** Data files use language-neutral keys; display text comes from `data/i18n/`. Server languages: `gl-cn`→Traditional Chinese, `gl-en`→English, `kr`→Korean (not supported yet).
 - **UI Decoupling:** The UI language (`en`/`cn`) is decoupled from the server data selection.
 - **UI State Management (Streamlit):** To ensure stable widget behavior and prevent "reverting value" bugs, **ALWAYS** use the `key` parameter in Streamlit widgets (e.g., `st.number_input(..., key='p_limit')`) to link them directly to `st.session_state`. Avoid manual state assignments immediately after widget rendering.
 

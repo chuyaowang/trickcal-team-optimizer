@@ -3,18 +3,17 @@
 Help keep the **trickcal-team-optimizer** data up to date! This guide explains how to update pet and task information for different game servers.
 
 ## Data Structure
-Pets now live in a single canonical file; only the per-server **jobs** files are
-split by server:
+Pets and missions are shared by all servers; only the display language differs.
 - `data/pets.csv`: the canonical master — one row per pet, shared across servers.
-- `data/i18n/traits.csv`, `data/i18n/rarity.csv`: translation tables mapping
-  language-neutral keys to localized names.
+- `data/missions/missions_YYMMDD.csv`: the missions of one game update, shared
+  across servers, written with language-neutral keys.
+- `data/i18n/traits.csv`, `data/i18n/rarity.csv`, `data/i18n/locations.csv`:
+  translation tables mapping language-neutral keys to localized names.
 - `data/pet_images/<id>.png`: pet icons, named by the pet's `id`.
-- `data/<server>/jobs_*.csv`: dispatch tasks per server (`cn`, `gl-cn`,
-  `gl-en`, `kr`). `kr` is **TESTING DATA ONLY**.
 
-Each server maps to one language: `cn`→Simplified, `gl-cn`→Traditional,
-`gl-en`→English, `kr`→Korean. A pet is considered available on a server when it
-has a non-empty name in that server's language column.
+Each server maps to one language: `gl-cn`→Traditional Chinese, `gl-en`→English,
+`kr`→Korean (not supported yet). A pet is considered available on a server when
+it has a non-empty name in that server's language column.
 
 ## 1. Updating Pets (`data/pets.csv`)
 Add or edit one row per pet in the canonical master.
@@ -30,28 +29,40 @@ Add or edit one row per pet in the canonical master.
 
 **Adding a new trait or rarity:** add a row to `data/i18n/traits.csv` (or
 `rarity.csv`) with the new key and its translation in each language. The keys you
-use in `pets.csv` and in the jobs files must exist in these tables.
+use in `pets.csv` and in the missions files must exist in these tables.
 
 **Before submitting:** run `python -m scripts.validate_pet_data` — it checks that
-every trait/rarity key resolves and that jobs traits map to keys.
+every trait/rarity/location key resolves and that each missions file is
+consistent.
 
-## 2. Updating Jobs (`jobs_*.csv`)
-Dispatch tasks rotate periodically. When a new batch of tasks is released:
-1.  **Do not create a new CSV from scratch.** 
-2.  **Open an existing `jobs_*.csv`** file in the server's folder.
-3.  Edit the values and **Save As** a new file.
-    - *Reason: Our CSV files are pre-formatted with **UTF-8 with BOM**. This ensures that Excel correctly identifies the Chinese characters. If you create a new file without BOM, Excel may display the characters as unreadable junk.*
-4.  Use the naming convention `jobs_YYMMDD.csv` (e.g., `jobs_260326.csv` for a March 26, 2026 update).
+## 2. Updating Missions (`data/missions/missions_YYMMDD.csv`)
+Missions rotate through **6 regions** in a fixed loop. Each region has the same 5
+locations and tasks every time; only the required traits change. One file covers
+all servers. When a new batch of missions is released:
+1.  **Copy the previous file of the same region** (6 updates earlier) and
+    **Save As** `missions_YYMMDD.csv` (e.g. `missions_261203.csv` for a
+    December 3, 2026 update).
+    - *Reason: our CSV files are saved as **UTF-8 with BOM** so Excel reads them
+      correctly; copying keeps that encoding.*
+2.  Change only the trait keys.
+
+**Columns:**
+- `location`: a location key from `data/i18n/locations.csv` (e.g.
+  `KYAROT_GREENHOUSE`). The location and task names shown to users come from
+  that table.
+- `trait_1`, `trait_2`: the required trait keys (e.g. `KEEN`, `BOND`). Leave
+  `trait_2` blank if the mission needs only one trait.
+
+A file must list each location at most once, and all its locations must belong
+to the same region; the validator checks both.
+
+**New locations or translations:** add or edit a row in
+`data/i18n/locations.csv` (`key`, `region`, then `location_<lang>` and
+`task_<lang>` for `en`, `zh_hant`, `ko`). A blank translation falls back to
+English.
 
 **Automated Check:**
 We have an automated system to ensure all CSV files have the correct **UTF-8 with BOM** encoding. This check runs both locally (if configured) and on every Pull Request.
-
-**Columns:**
-- `Location`: The name of the map/area.
-- `Task`: The specific name of the dispatch task.
-- `Trait 1`, `Trait 2`: The required traits for score bonuses, written in the
-  server's language. Each must match a translation in `data/i18n/traits.csv` so
-  it can be mapped to a trait key (the validator flags any that don't).
 
 ## Development Environment & Pre-commit
 To make contributions easier and avoid CI failures, we use `pre-commit` to automatically fix encoding issues before you even push your changes.
@@ -68,5 +79,5 @@ If `pre-commit` finds a CSV file without a BOM, it will:
 
 ## Submitting Changes
 - Ensure your CSV files are saved with **UTF-8 with BOM** encoding.
-- Submit a Pull Request with the new or updated files in the correct server directory.
+- Submit a Pull Request with the new or updated files.
 - GitHub Actions will verify the encoding. If the check fails, the build will turn red.
