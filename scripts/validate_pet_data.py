@@ -29,6 +29,28 @@ def find_unknown_job_traits(jobs_path, known_localized_to_key):
     return unknown
 
 
+def find_mission_file_errors(path, regions, trait_keys):
+    """Check one missions file: known keys, no repeated location, one region."""
+    df = pd.read_csv(path, dtype=str, encoding="utf-8-sig").fillna("")
+    errors, seen = [], set()
+    for _, row in df.iterrows():
+        loc = row["location"].strip()
+        if loc not in regions:
+            errors.append(f"{path}: unknown location key '{loc}'")
+        elif loc in seen:
+            errors.append(f"{path}: location '{loc}' listed more than once")
+        seen.add(loc)
+        for col in ("trait_1", "trait_2"):
+            trait = row[col].strip()
+            if trait and trait not in trait_keys:
+                errors.append(f"{path}: unknown trait key '{trait}'")
+    found_regions = {regions[loc] for loc in seen if loc in regions}
+    if len(found_regions) > 1:
+        errors.append(f"{path}: locations from more than one region "
+                      f"{sorted(found_regions)}")
+    return errors
+
+
 def main(data_dir="data"):
     errors, warnings = [], []
 
@@ -47,6 +69,11 @@ def main(data_dir="data"):
         for jobs_path in glob.glob(os.path.join(data_dir, server, "jobs_*.csv")):
             for text in find_unknown_job_traits(jobs_path, known):
                 errors.append(f"{jobs_path}: trait '{text}' has no key for {lang}")
+
+    # central missions files
+    regions = vocab_loader.location_regions()
+    for path in sorted(glob.glob(os.path.join(data_dir, "missions", "missions_*.csv"))):
+        errors.extend(find_mission_file_errors(path, regions, trait_keys))
 
     # master keys exist + icon/id checks
     master = pd.read_csv(os.path.join(data_dir, "pets.csv"), dtype=str).fillna("")

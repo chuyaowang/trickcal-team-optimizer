@@ -10,6 +10,36 @@ def get_available_job_files(server: str = 'cn', data_dir: str = './data') -> Lis
     pattern = os.path.join(data_dir, server, 'jobs_*.csv')
     return sorted(glob.glob(pattern))
 
+def get_available_mission_files(data_dir: str = './data') -> List[str]:
+    """List the central missions_YYMMDD.csv files (shared by all servers), oldest first."""
+    return sorted(glob.glob(os.path.join(data_dir, 'missions', 'missions_*.csv')))
+
+def load_missions(file_path: str, lang: str) -> List[Dict]:
+    """Load a central missions file as task dicts with text in `lang`.
+
+    Rows are `location,trait_1,trait_2` keys. Location/task text comes from
+    data/i18n/locations.csv (English fallback). Unknown keys raise ValueError.
+    """
+    df = pd.read_csv(file_path, dtype=str, encoding="utf-8-sig").fillna("")
+    known_traits = vocab_loader._load_table("traits.csv")
+    tasks = []
+    for _, row in df.iterrows():
+        loc_key = row["location"].strip()
+        try:
+            location, task = vocab_loader.location_text(loc_key, lang)
+        except KeyError:
+            raise ValueError(f"{file_path}: unknown location key '{loc_key}'")
+        bonus_skills = []
+        for col in ("trait_1", "trait_2"):
+            trait = row[col].strip()
+            if not trait:
+                continue
+            if trait not in known_traits:
+                raise ValueError(f"{file_path}: unknown trait key '{trait}'")
+            bonus_skills.append(trait)
+        tasks.append({'task': f"{location} - {task}", 'bonus_skills': bonus_skills})
+    return tasks
+
 def load_pets(server: str = 'cn', data_dir: str = './data') -> List[Dict]:
     """Load pets available on `server` from the canonical master.
 

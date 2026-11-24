@@ -11,8 +11,10 @@ def _clear_vocab_cache():
     clearing the cache, a table loaded from the temp dir would leak into later
     tests (and vice versa).
     """
-    vocab_loader._load_table.cache_clear()
-    vocab_loader._reverse_table.cache_clear()
+    caches = (vocab_loader._load_table, vocab_loader._reverse_table,
+              vocab_loader._load_locations)
+    for c in caches:
+        c.cache_clear()
     yield
-    vocab_loader._load_table.cache_clear()
-    vocab_loader._reverse_table.cache_clear()
+    for c in caches:
+        c.cache_clear()

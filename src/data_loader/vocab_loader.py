@@ -8,7 +8,7 @@ The `key` is a language-neutral token (e.g. KIND, UNIQUE). Blank cells mean
 
 import os
 from functools import lru_cache
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 import pandas as pd
 
@@ -62,3 +62,34 @@ def rarity_key_from_localized(text: str, lang: str) -> Optional[str]:
     if not text:
         return None
     return _reverse_table("rarity.csv").get(lang, {}).get(text.strip())
+
+
+@lru_cache(maxsize=None)
+def _load_locations() -> Dict[str, Dict[str, str]]:
+    """Return {key: row} from locations.csv, cells stripped.
+
+    Columns: key, region, location_<lang>, task_<lang> for en/zh_hant/ko.
+    """
+    path = os.path.join(_I18N_DIR, "locations.csv")
+    df = pd.read_csv(path, dtype=str, encoding="utf-8-sig").fillna("")
+    return {
+        row["key"].strip(): {col: str(val).strip() for col, val in row.items()}
+        for _, row in df.iterrows()
+        if row["key"].strip()
+    }
+
+
+def location_regions() -> Dict[str, int]:
+    return {key: int(row["region"]) for key, row in _load_locations().items()}
+
+
+def location_text(key: str, lang: str) -> Tuple[str, str]:
+    """Return (location, task) in `lang`, each falling back to English.
+
+    Raises KeyError for an unknown location key.
+    """
+    row = _load_locations()[key]
+    return tuple(
+        row.get(f"{field}_{lang}") or row[f"{field}_en"]
+        for field in ("location", "task")
+    )
