@@ -10,6 +10,7 @@ SKILL_SCORE_MAP = {
 SERVER_LANG = {
     "gl-cn": "zh_hant",
     "gl-en": "en",
+    "gl-jp": "ja",
     "kr": "ko",
 }
 
@@ -45,6 +46,14 @@ SERVER_REWARD_LEVELS = {
         (5, "C"),
         (1, "D"),
         (0, "N/A")
+    ],
+    'gl-jp': [
+        (37, "Sランク"),
+        (25, "Aランク"),
+        (13, "Bランク"),
+        (5, "Cランク"),
+        (1, "Dランク"),
+        (0, "報酬なし")
     ],
     'kr': [
         (37, "S"),

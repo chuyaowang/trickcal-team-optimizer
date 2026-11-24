@@ -310,11 +310,15 @@ with st.expander(t('TASK_PREVIEW', st.session_state.lang), expanded=True):
     else:
         st.write("No active tasks found in this file.")
 
-# Rank Colors
+# Rank Colors, keyed by the label's leading letter (S, Sランク -> gold)
 RANK_COLORS = {
-    "S": "#FFD700", "A": "#FFEC8B", "B": "#C0C0C0", 
-    "C": "#CD7F32", "D": "#A0522D", "N/A": "#F0F2F6"
+    "S": "#FFD700", "A": "#FFEC8B", "B": "#C0C0C0",
+    "C": "#CD7F32", "D": "#A0522D",
 }
+NO_RANK_COLOR = "#F0F2F6"
+
+def rank_color(label: str) -> str:
+    return RANK_COLORS.get(label[:1], NO_RANK_COLOR)
 
 # Pet selector. The icon-size rule is injected here (outside the fragment) so it
 # persists across fragment-only reruns; the selector itself runs in a fragment.
@@ -380,7 +384,7 @@ if st.session_state.get('calc_result'):
             reward_level = get_reward_level(score, st.session_state.server)
             carrot_reward = get_carrot_reward(score)
             
-            bg_color = RANK_COLORS.get(reward_level, "#F0F2F6")
+            bg_color = rank_color(reward_level)
             borrow_tag = " (借)" if st.session_state.lang == 'cn' else " (Borrow)"
             pet_list_str = ", ".join([f"{p['name']}{borrow_tag if p['is_borrowed'] else ''}" for p in team])
             bonus_str = ", ".join(trait_name(k, data_lang) for k in task['bonus_skills'])

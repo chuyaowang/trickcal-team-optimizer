@@ -39,3 +39,8 @@ def test_get_reward_level():
     
     # Test GL-EN server labels
     assert get_reward_level(37, 'gl-en') == 'S'
+
+    # Test GL-JP server labels
+    assert get_reward_level(37, 'gl-jp') == 'Sランク'
+    assert get_reward_level(1, 'gl-jp') == 'Dランク'
+    assert get_reward_level(0, 'gl-jp') == '報酬なし'

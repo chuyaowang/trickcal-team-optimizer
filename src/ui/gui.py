@@ -35,7 +35,7 @@ class DispatchCalculatorGUI:
         server_frame.pack(padx=10, pady=5, fill=tk.X)
         
         self.server_var = tk.StringVar(value=DEFAULT_SERVER)
-        servers = [("国际服 (GL-CN)", "gl-cn"), ("国际服 (GL-EN)", "gl-en"), ("韩服 (KR)", "kr")]
+        servers = [("国际服 (GL-CN)", "gl-cn"), ("国际服 (GL-EN)", "gl-en"), ("国际服 (GL-JP)", "gl-jp"), ("韩服 (KR)", "kr")]
         for text, mode in servers:
             ttk.Radiobutton(server_frame, text=text, variable=self.server_var, value=mode, command=self.on_server_change).pack(side=tk.LEFT, padx=15, pady=5)
 

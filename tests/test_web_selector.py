@@ -102,3 +102,10 @@ def test_mission_file_selection_survives_server_switch():
     [r for r in at.radio if r.key == "server"][0].set_value("gl-en").run(timeout=60)
     assert not at.exception, at.exception
     assert at.session_state["mission_file"] == chosen
+
+def test_gl_jp_server_renders():
+    at = AppTest.from_file(APP).run(timeout=60)
+    _workaround_none_valued_button_groups(at)
+    [r for r in at.radio if r.key == "server"][0].set_value("gl-jp").run(timeout=60)
+    assert not at.exception, at.exception
+    assert at.session_state["server"] == "gl-jp"

@@ -5,6 +5,7 @@ def test_server_lang_maps_each_server_to_one_language():
     assert constants.SERVER_LANG == {
         "gl-cn": "zh_hant",
         "gl-en": "en",
+        "gl-jp": "ja",
         "kr": "ko",
     }
 

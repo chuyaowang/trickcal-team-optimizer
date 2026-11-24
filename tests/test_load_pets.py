@@ -45,3 +45,10 @@ def test_load_pets_filters_by_server_language_and_keys(tmp_path, monkeypatch):
     # kr has no name -> pet absent
     pets_kr = csv_loader.load_pets(server="kr", data_dir=data_dir)
     assert pets_kr == []
+
+def test_gl_jp_server_has_every_pet_with_japanese_names():
+    pets = csv_loader.load_pets(server="gl-jp")
+    names = {p["name"] for p in pets}
+    assert len(pets) == 53
+    assert {"サト", "ｽﾋﾟｷ", "ラッコル"} <= names
+    assert next(p for p in pets if p["name"] == "サト")["rarity"] == "一般"
