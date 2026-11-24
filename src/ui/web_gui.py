@@ -323,7 +323,10 @@ PILL_ICON_PX = 32  # displayed icon size; thumbnails are 96px so this stays cris
 st.markdown(
     f"<style>.st-key-palette_box img,.st-key-owned_box_wrap img,.st-key-borrow_box_wrap img"
     f"{{height:{PILL_ICON_PX}px!important;max-height:{PILL_ICON_PX}px!important;"
-    f"width:auto!important;vertical-align:middle;}}</style>",
+    f"width:auto!important;vertical-align:middle;}}"
+    # result cards: each team member is an inline icon + name chip
+    f".team-member{{display:inline-flex;align-items:center;gap:4px;margin-right:12px;}}"
+    f".team-member img{{height:{PILL_ICON_PX}px;width:auto;}}</style>",
     unsafe_allow_html=True,
 )
 render_pet_selector(all_pets)
@@ -373,7 +376,10 @@ if st.session_state.get('calc_result'):
         m1.metric(t('TOTAL_REWARD', st.session_state.lang), f"{total_display}🥕")
         m2.metric(t('TOTAL_BORROWED', st.session_state.lang), result['borrowed'])
         m3.metric(t('CALC_TIME', st.session_state.lang), f"{calc_time:.3f}s")
-        
+
+        result_pets_by_name = {p['name']: p for p in all_pets}
+        result_thumb_ids = pet_selector.available_thumb_ids(THUMB_FS_DIR)
+
         for i, assign in enumerate(result['assignments'], 1):
             task = assign['task']
             team = assign['team']
@@ -383,7 +389,14 @@ if st.session_state.get('calc_result'):
             
             bg_color = rank_color(reward_level)
             borrow_tag = t('BORROW_TAG', st.session_state.lang)
-            pet_list_str = ", ".join([f"{p['name']}{borrow_tag if p['is_borrowed'] else ''}" for p in team])
+            pet_list_str = "".join(
+                pet_selector.team_member_html(
+                    result_pets_by_name.get(p['name'], {'name': p['name']}),
+                    result_thumb_ids,
+                    borrow_tag if p['is_borrowed'] else "",
+                )
+                for p in team
+            )
             bonus_str = ", ".join(trait_name(k, data_lang) for k in task['bonus_skills'])
 
             st.markdown(f"""

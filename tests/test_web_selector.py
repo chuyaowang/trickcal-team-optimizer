@@ -118,3 +118,14 @@ def test_japanese_ui_language_renders():
     [r for r in at.radio if r.key == "lang"][0].set_value("jp").run(timeout=60)
     assert not at.exception, at.exception
     assert at.title[0].value == t('APP_TITLE', 'jp')
+
+
+def test_result_cards_show_team_thumbnails():
+    at = AppTest.from_file(APP).run(timeout=60)
+    at.session_state["owned_set"] = [p["name"] for p in load_pets(server="gl-cn")[:10]]
+    _workaround_none_valued_button_groups(at)
+    at.button[0].click().run(timeout=60)
+    assert not at.exception, at.exception
+    cards = [m.value for m in at.markdown if 'class="team-member"' in m.value]
+    assert cards, "no result cards rendered"
+    assert any('<img src="app/static/pet_thumbs/' in c for c in cards)

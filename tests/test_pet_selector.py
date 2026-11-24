@@ -73,3 +73,37 @@ def test_pet_label():
     # No thumbnail for this id, or no id -> name only
     assert ps.pet_label({"id": "999", "name": "Inky"}, available, with_name=False) == "Inky"
     assert ps.pet_label({"id": None, "name": "Inky"}, available, with_name=True) == "Inky"
+
+
+def test_team_member_html_shows_thumbnail_and_name():
+    available = frozenset({"353924"})
+    pet = {"id": "353924", "name": "Sato"}
+    assert ps.team_member_html(pet, available) == (
+        '<span class="team-member">'
+        '<img src="app/static/pet_thumbs/353924.webp" alt="Sato">Sato</span>'
+    )
+
+
+def test_team_member_html_appends_borrow_tag():
+    available = frozenset({"353924"})
+    pet = {"id": "353924", "name": "Sato"}
+    assert ps.team_member_html(pet, available, borrow_tag=" (Borrow)").endswith(
+        ">Sato (Borrow)</span>"
+    )
+
+
+def test_team_member_html_without_thumbnail_is_name_only():
+    available = frozenset({"353924"})
+    assert ps.team_member_html({"id": "999", "name": "Inky"}, available) == (
+        '<span class="team-member">Inky</span>'
+    )
+    assert ps.team_member_html({"id": None, "name": "Inky"}, available) == (
+        '<span class="team-member">Inky</span>'
+    )
+
+
+def test_team_member_html_escapes_name():
+    available = frozenset({"1"})
+    out = ps.team_member_html({"id": "1", "name": 'A<b>"&'}, available)
+    assert 'alt="A&lt;b&gt;&quot;&amp;"' in out
+    assert ">A&lt;b&gt;&quot;&amp;</span>" in out
