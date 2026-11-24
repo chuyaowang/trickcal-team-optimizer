@@ -323,7 +323,12 @@ PILL_ICON_PX = 32  # displayed icon size; thumbnails are 96px so this stays cris
 st.markdown(
     f"<style>.st-key-palette_box img,.st-key-owned_box_wrap img,.st-key-borrow_box_wrap img"
     f"{{height:{PILL_ICON_PX}px!important;max-height:{PILL_ICON_PX}px!important;"
-    f"width:auto!important;vertical-align:middle;}}</style>",
+    f"width:auto!important;vertical-align:middle;}}"
+    # result cards: each team member is an inline icon + name chip
+    f".result-line{{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;}}"
+    f".team-member{{display:inline-flex;align-items:center;gap:4px;padding:2px 10px 2px 4px;"
+    f"border:1px solid rgba(0,0,0,0.15);border-radius:999px;background:rgba(255,255,255,0.6);}}"
+    f".team-member img{{height:{PILL_ICON_PX}px;width:auto;}}</style>",
     unsafe_allow_html=True,
 )
 render_pet_selector(all_pets)
@@ -373,7 +378,10 @@ if st.session_state.get('calc_result'):
         m1.metric(t('TOTAL_REWARD', st.session_state.lang), f"{total_display}🥕")
         m2.metric(t('TOTAL_BORROWED', st.session_state.lang), result['borrowed'])
         m3.metric(t('CALC_TIME', st.session_state.lang), f"{calc_time:.3f}s")
-        
+
+        result_pets_by_name = {p['name']: p for p in all_pets}
+        result_thumb_ids = pet_selector.available_thumb_ids(THUMB_FS_DIR)
+
         for i, assign in enumerate(result['assignments'], 1):
             task = assign['task']
             team = assign['team']
@@ -383,7 +391,14 @@ if st.session_state.get('calc_result'):
             
             bg_color = rank_color(reward_level)
             borrow_tag = t('BORROW_TAG', st.session_state.lang)
-            pet_list_str = ", ".join([f"{p['name']}{borrow_tag if p['is_borrowed'] else ''}" for p in team])
+            pet_list_str = "".join(
+                pet_selector.team_member_html(
+                    result_pets_by_name.get(p['name'], {'name': p['name']}),
+                    result_thumb_ids,
+                    borrow_tag if p['is_borrowed'] else "",
+                )
+                for p in team
+            )
             bonus_str = ", ".join(trait_name(k, data_lang) for k in task['bonus_skills'])
 
             st.markdown(f"""
@@ -391,9 +406,9 @@ if st.session_state.get('calc_result'):
                     <div style="font-size: 1.0em; font-weight: bold; color: #333;">{t('STATUS', st.session_state.lang)} {i}: {task['task']}</div>
                     <div style="font-size: 1.1em; font-weight: bold; margin: 4px 0;">{reward_level} ({score} pts) -> {carrot_reward} 🥕</div>
                     <hr style="margin: 6px 0; border: 0; border-top: 1px solid rgba(0,0,0,0.1);">
-                    <div style="display: flex; flex-wrap: wrap; gap: 15px; font-size: 0.95em;">
-                        <div><strong>{t('DISPATCH_TEAM', st.session_state.lang)}:</strong> {pet_list_str}</div>
-                        <div><strong>{t('BONUS_TRAITS', st.session_state.lang)}:</strong> {bonus_str}</div>
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 15px; font-size: 0.95em;">
+                        <div class="result-line"><strong>{t('DISPATCH_TEAM', st.session_state.lang)}:</strong> {pet_list_str}</div>
+                        <div class="result-line"><strong>{t('BONUS_TRAITS', st.session_state.lang)}:</strong> {bonus_str}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)

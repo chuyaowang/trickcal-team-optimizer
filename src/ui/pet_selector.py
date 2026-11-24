@@ -5,6 +5,7 @@ Streamlit (which runs page setup at import time). web_gui.py imports these
 helpers for rendering and for its on_change callbacks.
 """
 import functools
+import html
 import os
 from typing import Dict, FrozenSet, List, Tuple
 
@@ -45,6 +46,20 @@ def pet_label(pet: dict, available_ids, with_name: bool) -> str:
     if with_name:
         return f"{img} {pet['name']}".strip()
     return img if img else pet["name"]
+
+
+def team_member_html(pet: dict, available_ids, borrow_tag: str = "") -> str:
+    """HTML for one dispatch-team member in a result card: thumbnail + name.
+
+    Falls back to the name alone when the pet's id has no thumbnail. The name
+    and tag are HTML-escaped since result cards are raw HTML.
+    """
+    name = html.escape(pet["name"])
+    pid = str(pet.get("id") or "")
+    # alt="" : the name is printed right after, so the icon is decorative
+    img = (f'<img src="{STATIC_THUMB_URL}/{pid}{THUMB_EXT}" alt="">'
+           if pid and pid in available_ids else "")
+    return f'<span class="team-member">{img}{name}{html.escape(borrow_tag)}</span>'
 
 
 def add_owned(owned: List[str], name: str) -> List[str]:
