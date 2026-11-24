@@ -1,7 +1,7 @@
 """Load and look up the trait/rarity translation tables.
 
 Translation tables live in data/i18n/*.csv with columns:
-    key, en, zh_hans, zh_hant, ko
+    key, en, ja, zh_hant, ko
 The `key` is a language-neutral token (e.g. KIND, UNIQUE). Blank cells mean
 "no translation yet" and are ignored for reverse lookups.
 """
@@ -13,7 +13,7 @@ from typing import Dict, Optional, Tuple
 import pandas as pd
 
 _I18N_DIR = os.path.join("data", "i18n")
-_LANGS = ("en", "zh_hans", "zh_hant", "ko")
+_LANGS = ("en", "ja", "zh_hant", "ko")
 
 
 @lru_cache(maxsize=None)

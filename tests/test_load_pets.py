@@ -9,20 +9,20 @@ def _write_master(tmp_path):
     (data_dir / "i18n").mkdir(parents=True)
     with open(data_dir / "i18n" / "traits.csv", "w", encoding="utf-8-sig", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["key", "en", "zh_hans", "zh_hant", "ko"])
-        w.writerow(["KIND", "Kind", "体贴", "體貼", ""])
-        w.writerow(["DULL", "Dull", "迟钝", "遲鈍", ""])
+        w.writerow(["key", "en", "ja", "zh_hant", "ko"])
+        w.writerow(["KIND", "Kind", "配慮", "體貼", ""])
+        w.writerow(["DULL", "Dull", "鈍感", "遲鈍", ""])
     with open(data_dir / "i18n" / "rarity.csv", "w", encoding="utf-8-sig", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["key", "en", "zh_hans", "zh_hant", "ko"])
-        w.writerow(["NORMAL", "Normal", "普通宠物", "普通寵物", ""])
+        w.writerow(["key", "en", "ja", "zh_hant", "ko"])
+        w.writerow(["NORMAL", "Normal", "一般", "普通寵物", ""])
     with open(data_dir / "pets.csv", "w", encoding="utf-8-sig", newline="") as f:
         w = csv.writer(f)
         w.writerow(["id", "rarity_key", "trait_1", "rank_1", "trait_2", "rank_2",
-                    "name_en", "name_zh_hans", "name_zh_hant", "name_ko"])
-        # On en + cn, not on kr (blank name_ko)
+                    "name_en", "name_ja", "name_zh_hant", "name_ko"])
+        # On en + ja + zh_hant, not on kr (blank name_ko)
         w.writerow(["148590", "NORMAL", "KIND", "C", "DULL", "C",
-                    "Sato", "莎兔", "蘋果兔", ""])
+                    "Sato", "サト", "蘋果兔", ""])
     return str(data_dir)
 
 

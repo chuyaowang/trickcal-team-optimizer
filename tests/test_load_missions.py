@@ -15,9 +15,9 @@ def i18n(tmp_path, monkeypatch):
     d = tmp_path / "i18n"
     d.mkdir()
     _write(d / "traits.csv", [
-        ["key", "en", "zh_hans", "zh_hant", "ko"],
-        ["KIND", "Kind", "体贴", "體貼", ""],
-        ["KEEN", "Keen", "敏锐", "敏銳", ""],
+        ["key", "en", "ja", "zh_hant", "ko"],
+        ["KIND", "Kind", "配慮", "體貼", ""],
+        ["KEEN", "Keen", "鋭さ", "敏銳", ""],
     ])
     _write(d / "locations.csv", [
         ["key", "region", "location_en", "task_en", "location_zh_hant",
