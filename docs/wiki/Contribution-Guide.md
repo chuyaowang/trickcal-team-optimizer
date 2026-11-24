@@ -58,7 +58,7 @@ to the same region; the validator checks both.
 
 **New locations or translations:** add or edit a row in
 `data/i18n/locations.csv` (`key`, `region`, then `location_<lang>` and
-`task_<lang>` for `en`, `zh_hant`, `ko`). A blank translation falls back to
+`task_<lang>` for `en`, `ja`, `zh_hant`, `ko`). A blank translation falls back to
 English.
 
 **Automated Check:**

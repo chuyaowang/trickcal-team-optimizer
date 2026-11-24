@@ -38,7 +38,7 @@
 
 每个文件中同一地点最多出现一次，且所有地点必须属于同一区域；校验脚本会检查这两点。
 
-**新增地点或翻译:** 在 `data/i18n/locations.csv` 中添加或修改一行（`key`、`region`，以及 `en`、`zh_hant`、`ko` 各语言的 `location_<lang>` 和 `task_<lang>`）。翻译留空时显示英文。
+**新增地点或翻译:** 在 `data/i18n/locations.csv` 中添加或修改一行（`key`、`region`，以及 `en`、`ja`、`zh_hant`、`ko` 各语言的 `location_<lang>` 和 `task_<lang>`）。翻译留空时显示英文。
 
 **自动化检查:**
 我们拥有一套自动化系统，用于确保所有 CSV 文件都具有正确的 **带 BOM 的 UTF-8** 编码。此检查会在本地（如果已配置）以及每次 Pull Request 时运行。
