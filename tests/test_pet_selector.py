@@ -80,7 +80,7 @@ def test_team_member_html_shows_thumbnail_and_name():
     pet = {"id": "353924", "name": "Sato"}
     assert ps.team_member_html(pet, available) == (
         '<span class="team-member">'
-        '<img src="app/static/pet_thumbs/353924.webp" alt="Sato">Sato</span>'
+        '<img src="app/static/pet_thumbs/353924.webp" alt="">Sato</span>'
     )
 
 
@@ -105,5 +105,4 @@ def test_team_member_html_without_thumbnail_is_name_only():
 def test_team_member_html_escapes_name():
     available = frozenset({"1"})
     out = ps.team_member_html({"id": "1", "name": 'A<b>"&'}, available)
-    assert 'alt="A&lt;b&gt;&quot;&amp;"' in out
     assert ">A&lt;b&gt;&quot;&amp;</span>" in out
