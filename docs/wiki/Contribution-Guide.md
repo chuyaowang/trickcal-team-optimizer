@@ -24,7 +24,7 @@ Add or edit one row per pet in the canonical master.
 - `rarity_key`: one of `NORMAL`, `RARE`, `UNIQUE`, `LEGENDARY`.
 - `trait_1`, `rank_1`, `trait_2`, `rank_2`: trait **keys** (e.g. `KIND`,
   `BOLD`) and ranks (`C`, `B`, `A`, `S`). Leave the trait blank if absent.
-- `name_en`, `name_zh_hans`, `name_zh_hant`, `name_ko`: the pet's name per
+- `name_en`, `name_ja`, `name_zh_hant`, `name_ko`: the pet's name per
   language. Leave a name blank if the pet is not on that server (or unknown).
 
 **Adding a new trait or rarity:** add a row to `data/i18n/traits.csv` (or

@@ -19,7 +19,7 @@
 - `id`: 宠物的数字 id，必须与其图标 `data/pet_images/<id>.png` 对应。可留空（此时该宠物不显示图标）。
 - `rarity_key`: 取值为 `NORMAL`、`RARE`、`UNIQUE`、`LEGENDARY` 之一。
 - `trait_1`, `rank_1`, `trait_2`, `rank_2`: 特性**键**（如 `KIND`、`BOLD`）及其等级（`C`, `B`, `A`, `S`）。无特性时留空。
-- `name_en`, `name_zh_hans`, `name_zh_hant`, `name_ko`: 各语言下的宠物名称。若该宠物不在某服务器（或名称未知），留空即可。
+- `name_en`, `name_ja`, `name_zh_hant`, `name_ko`: 各语言下的宠物名称。若该宠物不在某服务器（或名称未知），留空即可。
 
 **新增特性或稀有度:** 在 `data/i18n/traits.csv`（或 `rarity.csv`）中添加一行，填写新的键及其各语言翻译。
 您在 `pets.csv` 和任务文件中使用的键，必须在这些翻译表中存在。
